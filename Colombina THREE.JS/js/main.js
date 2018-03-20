@@ -7,6 +7,31 @@ var container, scene, camera, renderer, controls, stats;
 // custom global variables
 var video, videoImage, videoImageContext, videoTexture;
 
+var loader = new THREE.OBJLoader();
+// load a resource
+loader.load(
+	// resource URL
+	'Glasses.obj',
+	// called when resource is loaded
+	function ( object ) {
+
+		scene.add( object );
+
+	},
+	// called when loading is in progresses
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'An error happened' );
+
+	}
+);
+
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 window.URL = window.URL || window.webkitURL;
 
@@ -23,7 +48,9 @@ var camvideo = document.getElementById('monitor');
 function gotStream(stream)
 {
 	if (window.URL)
-	{   camvideo.src = window.URL.createObjectURL(stream);   }
+	{   //camvideo.src = window.URL.createObjectURL(stream);
+      camvideo.srcObject = stream;
+  }
 	else // Opera
 	{   camvideo.src = stream;   }
 
@@ -49,12 +76,39 @@ function init()
 {
 	// SCENE
 	scene = new THREE.Scene();
+	//GLASSES
+	var loader = new THREE.OBJLoader();
+	// load a resource
+	loader.load(
+		// resource URL
+		'Glasses.obj',
+		// called when resource is loaded
+		function ( object ) {
+
+			//scene.add( object );
+			//object.position.set(0,50,0);
+
+		},
+		// called when loading is in progresses
+		function ( xhr ) {
+
+			console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+		},
+		// called when loading has errors
+		function ( error ) {
+
+			console.log( 'An error happened' );
+
+		}
+	);
+
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
-	camera.position.set(0,150,400);
+	camera.position.set(0,50,400);
 	camera.lookAt(scene.position);
 
 	// RENDERER
@@ -62,12 +116,6 @@ function init()
 	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
-
-	// CONTROLS
-	//controls = new THREE.OrbitControls( camera, renderer.domElement );
-
-	// SKYBOX/FOG
-	scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
 
 	///////////
 	// VIDEO //
@@ -93,9 +141,11 @@ function init()
 	movieScreen.position.set(0,50,0);
 	scene.add(movieScreen);
 
-	camera.position.set(0,150,300);
+	camera.position.set(0,50,150);
 	camera.lookAt(movieScreen.position);
 
+	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+	scene.add( light );
 
 }
 
@@ -103,14 +153,14 @@ function animate()
 {
   requestAnimationFrame( animate );
 	render();
-	update();
+	//update();
 }
 
-function update()
+/*function update()
 {
 	controls.update();
 	stats.update();
-}
+}*/
 
 function render()
 {
