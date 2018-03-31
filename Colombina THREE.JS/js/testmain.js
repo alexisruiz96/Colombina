@@ -17,6 +17,7 @@ canvases.ready = false;
 
 canvases.width = 640;
 canvases.height = 480;
+canvases.scale = 2;
 
 canvases.dummy = {};
 canvases.dummy.canvas = document.getElementById('dummy');
@@ -170,7 +171,7 @@ function updateFacialPoints(facialpoints){
 	var x,y,z;
 	var index = 0;
 	for (let i=0; i< MAX_POINTS; i++) {
-		let rect = e.data.features[i];
+		let rect = facialpoints.data.features[i];
 
 		positions[ index ++ ] = rect.x;
 		positions[ index ++ ] = rect.y;
@@ -189,4 +190,20 @@ asmWorker.onmessage = function (e) {
         updateFacialPoints(e);
         startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm')
     }
+}
+
+function detect(type) {
+    if (!canvases.running) {
+        canvases.running = true;
+        startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
+    }
+}
+
+function startWorker(imageData, command, type) {
+    canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
+    let message = {
+        cmd: command,
+        img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
+    };
+    asmWorker.postMessage(message);
 }
