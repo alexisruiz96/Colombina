@@ -7,30 +7,7 @@ var container, scene, camera, renderer, controls, stats;
 // custom global variables
 var video, videoImage, videoImageContext, videoTexture;
 
-var loader = new THREE.OBJLoader();
-// load a resource
-loader.load(
-	// resource URL
-	'Glasses.obj',
-	// called when resource is loaded
-	function ( object ) {
-
-		scene.add( object );
-
-	},
-	// called when loading is in progresses
-	function ( xhr ) {
-
-		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-	},
-	// called when loading has errors
-	function ( error ) {
-
-		console.log( 'An error happened' );
-
-	}
-);
+var facialPoints = [];
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 window.URL = window.URL || window.webkitURL;
@@ -67,41 +44,12 @@ function noStream(e)
 	{   msg = 'User denied access to use camera.';   }
 	document.getElementById('errorMessage').textContent = msg;
 }
-
 init();
-animate();
-
 // FUNCTIONS
 function init()
 {
 	// SCENE
 	scene = new THREE.Scene();
-	//GLASSES
-	var loader = new THREE.OBJLoader();
-	// load a resource
-	loader.load(
-		// resource URL
-		'Glasses.obj',
-		// called when resource is loaded
-		function ( object ) {
-
-			//scene.add( object );
-			//object.position.set(0,50,0);
-
-		},
-		// called when loading is in progresses
-		function ( xhr ) {
-
-			console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-		},
-		// called when loading has errors
-		function ( error ) {
-
-			console.log( 'An error happened' );
-
-		}
-	);
 
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
@@ -117,7 +65,7 @@ function init()
 	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
 
-	///////////
+	///////////z
 	// VIDEO //
 	///////////
 
@@ -146,6 +94,8 @@ function init()
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
+
+	animate();
 
 }
 

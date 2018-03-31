@@ -9,14 +9,17 @@
 		</style>
 	</head>
 	<body>
-		<!--<p id="errorMessage"></p>
-		<video id="monitor" autoplay width="160" height="120" style="visibility: hidden; float:left;"></video>
-		<canvas id="videoImage" width="160" height="120" style="visibility: hidden; float:left;"></canvas>
-
+		<p id="errorMessage"></p>
+		<video id="monitor" style="visibility: hidden; float:left;" width="620" height="480" autoplay></video>
+		<canvas id="videoImage" style="visibility: hidden; float:left;" width="620" height="480"></canvas>
+		<canvas id="dummy" style="position:fixed; left:-1000px; visibility: hidden"></canvas>
 		<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
-!-->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/91/three.js" charset="utf-8"></script>
+
+		<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/91/three.js" charset="utf-8"></script>-->
+		<script src="js/three.js"></script>
+		<script src="js/MTLLoader.js"></script>
 		<script src="js/OBJLoader.js"></script>
-		<script src="js/objScene.js"></script>
+		<script src="js/main.js"></script>
+		<!--<script src="js/objScene.js"></script>-->
 	</body>
 </html>
