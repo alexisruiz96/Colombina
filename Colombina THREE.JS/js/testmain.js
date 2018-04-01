@@ -177,7 +177,7 @@ function updateFacialPoints(facialpoints){
 		//console.log("x: " + rect.x);
 		//console.log("y: " + rect.y);
 		positions[ index ++ ] = rect.x/10;
-		positions[ index ++ ] = rect.y/10;
+		positions[ index ++ ] = -rect.y/10;
 		positions[ index ++ ] = rect.z;
 		//console.log("Count index: " + index);
   }
