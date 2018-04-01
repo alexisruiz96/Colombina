@@ -62,6 +62,7 @@ function noStream(e)
 }
 
 init();
+//animate();
 
 // FUNCTIONS
 function init()
@@ -107,8 +108,7 @@ function init()
 	movieScreen.position.set(0,50,0);
 	scene.add(movieScreen);
 
-	camera.position.set(0,50,150);
-	camera.lookAt(movieScreen.position);
+
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
@@ -133,7 +133,8 @@ function init()
 	facialPoints.position.set(0,50,0);
 	scene.add( facialPoints );
 
-	animate();
+	camera.position.set(0,50,150);
+	camera.lookAt(facialPoints.position);
 
 }
 
@@ -170,12 +171,15 @@ function updateFacialPoints(facialpoints){
 
 	var x,y,z;
 	var index = 0;
-	for (let i=0; i< MAX_POINTS; i++) {
+	for (let i=0; i< facialpoints.data.features.length; i++) {
+		//debugger
 		let rect = facialpoints.data.features[i];
-
-		positions[ index ++ ] = rect.x;
-		positions[ index ++ ] = rect.y;
-		positions[ index ++ ] = zDistance;
+		//console.log("x: " + rect.x);
+		//console.log("y: " + rect.y);
+		positions[ index ++ ] = rect.x/10;
+		positions[ index ++ ] = rect.y/10;
+		positions[ index ++ ] = rect.z;
+		//console.log("Count index: " + index);
   }
 }
 
@@ -187,8 +191,10 @@ asmWorker.onmessage = function (e) {
         }
     }
     else {
-        updateFacialPoints(e);
-        startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm')
+
+      updateFacialPoints(e);
+      startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
+
     }
 }
 
@@ -200,10 +206,11 @@ function detect(type) {
 }
 
 function startWorker(imageData, command, type) {
-    canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
-    let message = {
-        cmd: command,
-        img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
-    };
-    asmWorker.postMessage(message);
+	animate();
+  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
+  let message = {
+      cmd: command,
+      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
+  };
+  asmWorker.postMessage(message);
 }
