@@ -176,8 +176,8 @@ function updateFacialPoints(facialpoints){
 		let rect = facialpoints.data.features[i];
 		//console.log("x: " + rect.x);
 		//console.log("y: " + rect.y);
-		positions[ index ++ ] = rect.x/10;
-		positions[ index ++ ] = -rect.y/10;
+		positions[ index ++ ] = rect.x/5;
+		positions[ index ++ ] = -rect.y/5;
 		positions[ index ++ ] = rect.z;
 		//console.log("Count index: " + index);
   }
