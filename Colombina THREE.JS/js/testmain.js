@@ -4,11 +4,11 @@ let asmWorker = new Worker('asm-worker.js');
 var video = document.querySelector("#monitor");
 // standard global variables
 var container, scene, camera, renderer, controls, stats;
-var zDistance = 3;
 let objType = 'faceDetect';
 
 // custom global variables
 var video, videoImage, videoImageContext, videoTexture, positions, facialPoints;
+var ratioPixels = [];
 var MAX_POINTS = 68;
 
 let canvases = {};
@@ -100,15 +100,18 @@ function init()
 	videoTexture.minFilter = THREE.LinearFilter;
 	videoTexture.magFilter = THREE.LinearFilter;
 
-	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
+	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
 	// the geometry on which the movie will be displayed;
 	// 		movie image will be scaled to fit these dimensions.
 	var movieGeometry = new THREE.PlaneGeometry( 45, 45, 1, 1 );
 	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
-	movieScreen.position.set(0,50,0);
+	movieScreen.name = "movieScreen";
+	movieScreen.position.set(0,0,0);
 	scene.add(movieScreen);
 
-
+	//define ratio of pixels from video to movieScreen
+	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
+	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
@@ -130,11 +133,11 @@ function init()
 
 	//points
   facialPoints = new THREE.Points(geometry,material);
-	facialPoints.position.set(0,50,0);
+	facialPoints.position.set(0,0,0);
 	scene.add( facialPoints );
 
-	camera.position.set(0,50,150);
-	camera.lookAt(facialPoints.position);
+	camera.position.set(0,0,150);
+	camera.lookAt(movieScreen.position);
 
 }
 
@@ -176,8 +179,8 @@ function updateFacialPoints(facialpoints){
 		let rect = facialpoints.data.features[i];
 		//console.log("x: " + rect.x);
 		//console.log("y: " + rect.y);
-		positions[ index ++ ] = rect.x/5;
-		positions[ index ++ ] = -rect.y/5;
+		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width) / ratioPixels.x;
+		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height) / ratioPixels.y);
 		positions[ index ++ ] = rect.z;
 		//console.log("Count index: " + index);
   }
