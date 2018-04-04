@@ -62,7 +62,7 @@ function noStream(e)
 }
 
 init();
-//animate();
+animate();
 
 // FUNCTIONS
 function init()
@@ -133,7 +133,7 @@ function init()
 
 	//points
   facialPoints = new THREE.Points(geometry,material);
-	facialPoints.position.set(0,0,153);
+	facialPoints.position.set(0,0,0);
 	scene.add( facialPoints );
 
 	camera.position.set(0,0,150);
@@ -209,7 +209,7 @@ function detect(type) {
 }
 
 function startWorker(imageData, command, type) {
-	animate();
+	//animate();
   canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
   let message = {
       cmd: command,

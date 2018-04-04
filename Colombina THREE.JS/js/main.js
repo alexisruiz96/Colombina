@@ -1,26 +1,42 @@
 // MAIN
+let asmWorker = new Worker('asm-worker.js');
 
+var video = document.querySelector("#monitor");
 // standard global variables
 var container, scene, camera, renderer, controls, stats;
-//var keyboard = new THREEx.KeyboardState();
+let objType = 'faceDetect';
 
 // custom global variables
-var video, videoImage, videoImageContext, videoTexture;
+var video, videoImage, videoImageContext, videoTexture, positions, facialPoints;
+var ratioPixels = [];
+var MAX_POINTS = 68;
 
-var facialPoints = [];
+let canvases = {};
+canvases.running = false;
+canvases.ready = false;
+
+canvases.width = 640;
+canvases.height = 480;
+canvases.scale = 2;
+
+canvases.dummy = {};
+canvases.dummy.canvas = document.getElementById('dummy');
+canvases.dummy.context = canvases.dummy.canvas.getContext('2d');
+canvases.dummy.canvas.width = canvases.width;
+canvases.dummy.canvas.height = canvases.height;
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 window.URL = window.URL || window.webkitURL;
 
 var camvideo = document.getElementById('monitor');
 
-	if (!navigator.getUserMedia)
-	{
-		document.getElementById('errorMessage').innerHTML =
-			'Sorry. <code>navigator.getUserMedia()</code> is not available.';
-	} else {
-		navigator.getUserMedia({video: true}, gotStream, noStream);
-	}
+if (!navigator.getUserMedia)
+{
+	document.getElementById('errorMessage').innerHTML =
+		'Sorry. <code>navigator.getUserMedia()</code> is not available.';
+} else {
+	navigator.getUserMedia({video: true}, gotStream, noStream);
+}
 
 function gotStream(stream)
 {
@@ -44,7 +60,10 @@ function noStream(e)
 	{   msg = 'User denied access to use camera.';   }
 	document.getElementById('errorMessage').textContent = msg;
 }
+
 init();
+animate();
+
 // FUNCTIONS
 function init()
 {
@@ -65,7 +84,7 @@ function init()
 	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
 
-	///////////z
+	///////////
 	// VIDEO //
 	///////////
 
@@ -81,27 +100,52 @@ function init()
 	videoTexture.minFilter = THREE.LinearFilter;
 	videoTexture.magFilter = THREE.LinearFilter;
 
-	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
+	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
 	// the geometry on which the movie will be displayed;
 	// 		movie image will be scaled to fit these dimensions.
-	var movieGeometry = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+	var movieGeometry = new THREE.PlaneGeometry( 45, 45, 1, 1 );
 	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
-	movieScreen.position.set(0,50,0);
+	movieScreen.name = "movieScreen";
+	movieScreen.position.set(0,0,0);
 	scene.add(movieScreen);
 
-	camera.position.set(0,50,150);
-	camera.lookAt(movieScreen.position);
+	//define ratio of pixels from video to movieScreen
+	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
+	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
 
-	animate();
+	//FACIAL POINTS
+	// geometry
+	var geometry = new THREE.BufferGeometry();
+
+	// attributes
+	var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+
+	// drawcalls
+	drawCount = 68; // draw the first 2 points, only
+	geometry.setDrawRange( 0, drawCount );
+
+	// material
+	var material = new THREE.PointsMaterial( { color: 0xff0000 } );
+
+	//points
+  facialPoints = new THREE.Points(geometry,material);
+	facialPoints.position.set(0,0,0);
+	scene.add( facialPoints );
+
+	camera.position.set(0,0,150);
+	camera.lookAt(0, 0, 0);
 
 }
 
 function animate()
 {
   requestAnimationFrame( animate );
+	//positions = facialPoints.geometry.attributes.position.array;
+	facialPoints.geometry.attributes.position.needsUpdate = true;
 	render();
 	//update();
 }
@@ -122,4 +166,54 @@ function render()
 	}
 
 	renderer.render( scene, camera );
+}
+
+
+function updateFacialPoints(facialpoints){
+	positions = facialPoints.geometry.attributes.position.array;
+
+	var x,y,z;
+	var index = 0;
+	for (let i=0; i< facialpoints.data.features.length; i++) {
+		//debugger
+		let rect = facialpoints.data.features[i];
+		//console.log("x: " + rect.x);
+		//console.log("y: " + rect.y);
+		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
+		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
+		positions[ index ++ ] = rect.z;
+		//console.log("Count index: " + index);
+  }
+}
+
+asmWorker.onmessage = function (e) {
+    if (e.data.msg == 'asm') {
+        if (canvases.ready) { setTimeout(detect, 2000)}
+        else {
+            canvases.ready = true
+        }
+    }
+    else {
+
+      updateFacialPoints(e);
+      startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
+
+    }
+}
+
+function detect(type) {
+    if (!canvases.running) {
+        canvases.running = true;
+        startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
+    }
+}
+
+function startWorker(imageData, command, type) {
+	//animate();
+  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
+  let message = {
+      cmd: command,
+      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
+  };
+  asmWorker.postMessage(message);
 }
