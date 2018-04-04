@@ -133,11 +133,11 @@ function init()
 
 	//points
   facialPoints = new THREE.Points(geometry,material);
-	facialPoints.position.set(0,0,0);
+	facialPoints.position.set(0,0,153);
 	scene.add( facialPoints );
 
 	camera.position.set(0,0,150);
-	camera.lookAt(movieScreen.position);
+	camera.lookAt(0, 0, 0);
 
 }
 
@@ -179,8 +179,8 @@ function updateFacialPoints(facialpoints){
 		let rect = facialpoints.data.features[i];
 		//console.log("x: " + rect.x);
 		//console.log("y: " + rect.y);
-		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width) / ratioPixels.x;
-		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height) / ratioPixels.y);
+		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
+		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
 		positions[ index ++ ] = rect.z;
 		//console.log("Count index: " + index);
   }
