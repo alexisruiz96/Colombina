@@ -6,7 +6,7 @@ let video = document.querySelector("#monitor");
 let container, scene, camera, renderer, controls, stats;
 const objType = 'faceDetect';
 
-let test;
+let isPainted,test;
 
 // custom global variables
 let videoImage, videoImageContext, videoTexture, positions, facialPoints;
@@ -72,6 +72,7 @@ function init()
 	// SCENE
 	scene = new THREE.Scene();
 
+	isPainted = false;
 	// CAMERA
 	const SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
@@ -211,9 +212,9 @@ function render()
 
 function updateFacialPoints(facialpoints){
 	positions = facialPoints.geometry.attributes.position.array;
-
 	let x,y,z;
 	let index = 0;
+	const depth = 3;
 	for (let i=0; i< facialpoints.data.features.length; i++) {
 		//debugger
 		let rect = facialpoints.data.features[i];
@@ -221,15 +222,27 @@ function updateFacialPoints(facialpoints){
 		//console.log("y: " + rect.y);
 		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
 		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
-		positions[ index ++ ] = rect.z;
+		positions[ index ++ ] = depth;
 		//console.log("Count index: " + index);
   }
+
 	index = 0;
 	x = positions[index ++];
 	y = positions[index ++];
 	test = scene.getObjectByName("cap");
 	test.position.set(x,y,0);
 
+}
+
+function hideShowPoints(facialPointsLength){
+	if(facialPointsLength === 0 && isPainted != false){
+		scene.remove(facialPoints);
+		isPainted = false;
+	}
+	else if (facialPointsLength != 0 && isPainted != true) {
+		scene.add(facialPoints);
+		isPainted = true;
+	}
 }
 
 asmWorker.onmessage = function (e) {
@@ -242,6 +255,7 @@ asmWorker.onmessage = function (e) {
     else {
 
       updateFacialPoints(e);
+			hideShowPoints(e.data.features.length);
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }

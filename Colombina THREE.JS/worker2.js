@@ -25,8 +25,7 @@ function faceDetect(imageData) {
   for (let i = 0; i < facialPoints.size(); i++) {
     facialPointsArray.push({
       x: facialPoints.get(i)[0],
-      y: facialPoints.get(i)[1],
-			z: 3
+      y: facialPoints.get(i)[1]
     });
   }
 
