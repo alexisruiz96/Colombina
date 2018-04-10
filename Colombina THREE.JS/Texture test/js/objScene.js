@@ -18,10 +18,11 @@ function init(){
 	scene.add(meshFloor);
 
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+  ambientlight.position.set(0,7,0);
 	scene.add(ambientLight);
 
 	light = new THREE.PointLight(0xffffff, 0.8, 18);
-	light.position.set(-3,6,-3);
+	light.position.set(0 ,6, 0);
 	light.castShadow = true;
 	light.shadow.camera.near = 0.1;
 	light.shadow.camera.far = 25;
