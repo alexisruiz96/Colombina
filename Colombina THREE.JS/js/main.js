@@ -1,15 +1,17 @@
 // MAIN
 let asmWorker = new Worker('asm-worker.js');
 
-var video = document.querySelector("#monitor");
+let video = document.querySelector("#monitor");
 // standard global variables
-var container, scene, camera, renderer, controls, stats;
-let objType = 'faceDetect';
+let container, scene, camera, renderer, controls, stats;
+const objType = 'faceDetect';
+
+let test;
 
 // custom global variables
-var video, videoImage, videoImageContext, videoTexture, positions, facialPoints;
-var ratioPixels = [];
-var MAX_POINTS = 68;
+let videoImage, videoImageContext, videoTexture, positions, facialPoints;
+let ratioPixels = [];
+const MAX_POINTS = 68;
 
 let canvases = {};
 canvases.running = false;
@@ -28,7 +30,7 @@ canvases.dummy.canvas.height = canvases.height;
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 window.URL = window.URL || window.webkitURL;
 
-var camvideo = document.getElementById('monitor');
+let camvideo = document.getElementById('monitor');
 
 if (!navigator.getUserMedia)
 {
@@ -55,14 +57,14 @@ function gotStream(stream)
 
 function noStream(e)
 {
-	var msg = 'No camera available.';
-	if (e.code == 1)
+	let msg = 'No camera available.';
+	if (e.code === 1)
 	{   msg = 'User denied access to use camera.';   }
 	document.getElementById('errorMessage').textContent = msg;
 }
 
 init();
-animate();
+update();
 
 // FUNCTIONS
 function init()
@@ -71,8 +73,8 @@ function init()
 	scene = new THREE.Scene();
 
 	// CAMERA
-	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
+	const SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
 	camera.position.set(0,50,400);
@@ -100,11 +102,11 @@ function init()
 	videoTexture.minFilter = THREE.LinearFilter;
 	videoTexture.magFilter = THREE.LinearFilter;
 
-	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
+	let movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
 	// the geometry on which the movie will be displayed;
 	// 		movie image will be scaled to fit these dimensions.
-	var movieGeometry = new THREE.PlaneGeometry( 45, 45, 1, 1 );
-	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+	let movieGeometry = new THREE.PlaneGeometry( 80, 80, 1, 1 );
+	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 	movieScreen.name = "movieScreen";
 	movieScreen.position.set(0,0,0);
 	scene.add(movieScreen);
@@ -113,15 +115,15 @@ function init()
 	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
 	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
-	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+	let light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
 
 	//FACIAL POINTS
 	// geometry
-	var geometry = new THREE.BufferGeometry();
+	let geometry = new THREE.BufferGeometry();
 
 	// attributes
-	var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+	let positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
 	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 
 	// drawcalls
@@ -129,23 +131,61 @@ function init()
 	geometry.setDrawRange( 0, drawCount );
 
 	// material
-	var material = new THREE.PointsMaterial( { color: 0xff0000 } );
+	let material = new THREE.PointsMaterial( { color: 0xff0000 } );
 
 	//points
   facialPoints = new THREE.Points(geometry,material);
 	facialPoints.position.set(0,0,0);
 	scene.add( facialPoints );
 
+	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+	scene.add(ambientLight);
+
+	light = new THREE.PointLight(0xffffff, 0.8, 18);
+	light.position.set(-3,6,-3);
+	light.castShadow = true;
+	light.shadow.camera.near = 0.1;
+	light.shadow.camera.far = 25;
+	scene.add(light);
+
+
+	let textureLoader = new THREE.TextureLoader();
+	capTexture = textureLoader.load('models/cap/misc16L.jpg');
+	capBump = textureLoader.load('models/cap/miscbump.jpg');
+
+	//Load material and obj
+	let mtlLoader = new THREE.MTLLoader();
+	mtlLoader.load("models/cap/objCap.mtl", function(materials){
+
+		materials.preload();
+		let objLoader = new THREE.OBJLoader();
+		objLoader.setMaterials(materials);
+
+		objLoader.load("models/cap/objCap.obj", function(mesh){
+			mesh.name = "cap";
+			mesh.traverse(function(node){
+				if( node instanceof THREE.Mesh ){
+					node.castShadow = true;
+					node.receiveShadow = true;
+				}
+			});
+
+			scene.add(mesh);
+		});
+
+	});
+
 	camera.position.set(0,0,150);
 	camera.lookAt(0, 0, 0);
 
 }
 
-function animate()
+function update()
 {
-  requestAnimationFrame( animate );
+  requestAnimationFrame( update );
 	//positions = facialPoints.geometry.attributes.position.array;
 	facialPoints.geometry.attributes.position.needsUpdate = true;
+
 	render();
 	//update();
 }
@@ -172,8 +212,8 @@ function render()
 function updateFacialPoints(facialpoints){
 	positions = facialPoints.geometry.attributes.position.array;
 
-	var x,y,z;
-	var index = 0;
+	let x,y,z;
+	let index = 0;
 	for (let i=0; i< facialpoints.data.features.length; i++) {
 		//debugger
 		let rect = facialpoints.data.features[i];
@@ -184,6 +224,12 @@ function updateFacialPoints(facialpoints){
 		positions[ index ++ ] = rect.z;
 		//console.log("Count index: " + index);
   }
+	index = 0;
+	x = positions[index ++];
+	y = positions[index ++];
+	test = scene.getObjectByName("cap");
+	test.position.set(x,y,0);
+
 }
 
 asmWorker.onmessage = function (e) {
@@ -209,7 +255,7 @@ function detect(type) {
 }
 
 function startWorker(imageData, command, type) {
-	//animate();
+	//update();
   canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
   let message = {
       cmd: command,

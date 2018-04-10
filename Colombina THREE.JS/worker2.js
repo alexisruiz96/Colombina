@@ -1,6 +1,5 @@
-var init;
-var ptr;
-var cvbridge;
+let ptr;
+let cvbridge;
 
 function initMemory(imageData) {
 
@@ -17,10 +16,10 @@ function faceDetect(imageData) {
 		initMemory(imageData);
 	}
 
-	//var ptr= Module._malloc(imageData.width * imageData.height * 4);
+	//let ptr= Module._malloc(imageData.width * imageData.height * 4);
 
 	Module.HEAPU8.set(imageData.data,ptr);
-	var facialPoints = cvbridge.processFrame(ptr);
+	let facialPoints = cvbridge.processFrame(ptr);
   //cvbridge.delete();
 
   for (let i = 0; i < facialPoints.size(); i++) {
