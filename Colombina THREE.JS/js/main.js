@@ -175,6 +175,8 @@ function init()
 		});
 
 	});
+	//var gorra = scene.getObjectByName("cap");
+	//var bbox = new THREE.Box3().setFromObject(gorra);
 
 	camera.position.set(0,0,150);
 	camera.lookAt(0, 0, 0);
@@ -216,21 +218,19 @@ function updateFacialPoints(facialpoints){
 	let index = 0;
 	const depth = 3;
 	for (let i=0; i< facialpoints.data.features.length; i++) {
-		//debugger
 		let rect = facialpoints.data.features[i];
-		//console.log("x: " + rect.x);
-		//console.log("y: " + rect.y);
 		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
 		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
 		positions[ index ++ ] = depth;
-		//console.log("Count index: " + index);
   }
 
 	index = 0;
 	x = positions[index ++];
 	y = positions[index ++];
 	test = scene.getObjectByName("cap");
+	//calcular bbox cap
 	test.position.set(x,y,0);
+	test.scale.set(4, 4, 4);
 
 }
 
