@@ -9,7 +9,7 @@ const objType = 'faceDetect';
 let isPainted,test;
 
 // custom global variables
-let videoImage, videoImageContext, videoTexture, positions, facialPoints;
+let videoImage, videoImageContext, videoTexture, positions, facialPoints, cap, bbox;
 let ratioPixels = [];
 const MAX_POINTS = 68;
 
@@ -104,7 +104,7 @@ function init()
 	videoTexture.magFilter = THREE.LinearFilter;
 
 	let movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
-	// the geometry on which the movie will be displayed;
+	// the geometry where the movie will be displayed;
 	// 		movie image will be scaled to fit these dimensions.
 	let movieGeometry = new THREE.PlaneGeometry( 80, 80, 1, 1 );
 	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
@@ -175,8 +175,9 @@ function init()
 		});
 
 	});
-	//var gorra = scene.getObjectByName("cap");
-	//var bbox = new THREE.Box3().setFromObject(gorra);
+
+	//bounding box of the selected Mesh
+	bbox = new THREE.Box3();
 
 	camera.position.set(0,0,150);
 	camera.lookAt(0, 0, 0);
@@ -256,6 +257,8 @@ asmWorker.onmessage = function (e) {
 
       updateFacialPoints(e);
 			hideShowPoints(e.data.features.length);
+			cap = scene.getObjectByName("cap");
+			bbox = bbox.setFromObject(cap);
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }
