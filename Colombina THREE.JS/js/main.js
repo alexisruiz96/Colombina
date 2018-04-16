@@ -6,7 +6,7 @@ let video = document.querySelector("#monitor");
 let container, scene, camera, renderer, controls, stats;
 const objType = 'faceDetect';
 
-let isPainted,test;
+let isPainted,selectedObject;
 
 // custom global variables
 let videoImage, videoImageContext, videoTexture, positions, facialPoints, cap, bbox;
@@ -32,12 +32,18 @@ window.URL = window.URL || window.webkitURL;
 
 let camvideo = document.getElementById('monitor');
 
-if (!navigator.getUserMedia)
-{
-	document.getElementById('errorMessage').innerHTML =
-		'Sorry. <code>navigator.getUserMedia()</code> is not available.';
-} else {
-	navigator.getUserMedia({video: true}, gotStream, noStream);
+config();
+init();
+update();
+
+function config(){
+	if (!navigator.getUserMedia)
+	{
+		document.getElementById('errorMessage').innerHTML =
+			'Sorry. <code>navigator.getUserMedia()</code> is not available.';
+	} else {
+		navigator.getUserMedia({video: true}, gotStream, noStream);
+	}
 }
 
 function gotStream(stream)
@@ -62,9 +68,6 @@ function noStream(e)
 	{   msg = 'User denied access to use camera.';   }
 	document.getElementById('errorMessage').textContent = msg;
 }
-
-init();
-update();
 
 // FUNCTIONS
 function init()
@@ -212,40 +215,6 @@ function render()
 	renderer.render( scene, camera );
 }
 
-
-function updateFacialPoints(facialpoints){
-	positions = facialPoints.geometry.attributes.position.array;
-	let x,y,z;
-	let index = 0;
-	const depth = 3;
-	for (let i=0; i< facialpoints.data.features.length; i++) {
-		let rect = facialpoints.data.features[i];
-		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
-		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
-		positions[ index ++ ] = depth;
-  }
-
-	index = 0;
-	x = positions[index ++];
-	y = positions[index ++];
-	test = scene.getObjectByName("cap");
-	//calcular bbox cap
-	test.position.set(x,y,0);
-	test.scale.set(4, 4, 4);
-
-}
-
-function hideShowPoints(facialPointsLength){
-	if(facialPointsLength === 0 && isPainted != false){
-		scene.remove(facialPoints);
-		isPainted = false;
-	}
-	else if (facialPointsLength != 0 && isPainted != true) {
-		scene.add(facialPoints);
-		isPainted = true;
-	}
-}
-
 asmWorker.onmessage = function (e) {
     if (e.data.msg == 'asm') {
         if (canvases.ready) { setTimeout(detect, 2000)}
@@ -255,10 +224,12 @@ asmWorker.onmessage = function (e) {
     }
     else {
 
-      updateFacialPoints(e);
+      let updatedpoints = updateFacialPoints(e);
+			let eyedistance = calculateEyesDistance(updatedpoints, e.data.features.length);
 			hideShowPoints(e.data.features.length);
 			cap = scene.getObjectByName("cap");
 			bbox = bbox.setFromObject(cap);
+			scalateObjectToFace(eyedistance, bbox);
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }
@@ -279,4 +250,86 @@ function startWorker(imageData, command, type) {
       img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
   };
   asmWorker.postMessage(message);
+}
+
+function updateFacialPoints(facialpoints){
+	positions = facialPoints.geometry.attributes.position.array;
+	let x,y,z;
+	let index = 0;
+	const depth = 3;
+	for (let i=0; i< facialpoints.data.features.length; i++) {
+		let rect = facialpoints.data.features[i];
+		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
+		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
+		positions[ index ++ ] = depth;
+  }
+
+	index = 0;
+	x = positions[index ++];
+	y = positions[index ++];
+	selectedObject = scene.getObjectByName("cap");
+	//calcular bbox cap
+	selectedObject.position.set(x,y,0);
+	selectedObject.scale.set(4, 4, 4);
+
+	return positions;
+}
+
+function hideShowPoints(facialPointsLength){
+	if(facialPointsLength === 0 && isPainted != false){
+		scene.remove(facialPoints);
+		cap.visible = false;
+		isPainted = false;
+	}
+	else if (facialPointsLength != 0 && isPainted != true) {
+		scene.add(facialPoints);
+		cap.visible = true;
+		isPainted = true;
+	}
+}
+
+function calculateEyesDistance(positions, facialpointssize){
+	//debugger
+	if(!facialpointssize)
+		return;
+
+	let eyesDistanceValue;
+	let eyePoints = [];
+	eyePoints.mineye1 = 37;
+	eyePoints.maxeye1 = 42;
+	eyePoints.mineye2 = 43;
+	eyePoints.maxeye2 = 48;
+	eyePoints.sizeeye = (eyePoints.maxeye1 - eyePoints.mineye1) + 1;
+	let sumPoints = [];
+	sumPoints.xeye1 = sumPoints.yeye1 = sumPoints.xeye2 = sumPoints.yeye2 = 0;
+	let vectorSize = 3;
+	let indexEye1 = vectorSize * eyePoints.mineye1;
+	let indexEye2 = vectorSize * eyePoints.mineye2;
+	let centerEyePointsAvg = [];
+
+	for( let i=indexEye1; i < eyePoints.maxeye1 * vectorSize; i++){
+			sumPoints.xeye1 = sumPoints.xeye1 + positions[indexEye1 ++];
+			sumPoints.yeye1 = sumPoints.yeye1 + positions[indexEye1 ++];
+			indexEye1 ++;
+	}
+
+	for( let i=indexEye2; i < eyePoints.maxeye2 * vectorSize; i++){
+			sumPoints.xeye2 = sumPoints.xeye2 + positions[indexEye2 ++];
+			sumPoints.yeye2 = sumPoints.yeye2 + positions[indexEye2 ++];
+			indexEye2 ++;
+	}
+
+	centerEyePointsAvg.xeye1 = sumPoints.xeye1 / eyePoints.sizeeye;
+	centerEyePointsAvg.yeye1 = sumPoints.yeye1 / eyePoints.sizeeye;
+	centerEyePointsAvg.xeye2 = sumPoints.xeye2 / eyePoints.sizeeye;
+	centerEyePointsAvg.yeye2 = sumPoints.yeye2 / eyePoints.sizeeye;
+
+	//calculates points eyesDistance
+	eyesDistanceValue = Math.hypot(centerEyePointsAvg.xeye2 - centerEyePointsAvg.xeye1, centerEyePointsAvg.yeye2 - centerEyePointsAvg.yeye1 );
+
+	return eyesDistanceValue;
+}
+
+function scalateObjectToFace(eyesdistance, object){
+
 }
