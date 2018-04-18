@@ -9,9 +9,10 @@ const objType = 'faceDetect';
 let isPainted,selectedObject;
 
 // custom global variables
-let videoImage, videoImageContext, videoTexture, positions, facialPoints, cap, bbox;
+let videoImage, videoImageContext, videoTexture, positions, facialPoints, cap, bbox, testPoints;
 let ratioPixels = [];
 const MAX_POINTS = 68;
+let vectorSize = 3;
 
 let canvases = {};
 canvases.running = false;
@@ -142,6 +143,22 @@ function init()
 	facialPoints.position.set(0,0,0);
 	scene.add( facialPoints );
 
+	//TESTING EYES
+	// geometry
+	let geometryTEST = new THREE.BufferGeometry();
+	let max_test = 2;
+	// attributes
+	let positionsTEST = new Float32Array( max_test * 3 ); // 3 vertices per point
+	geometryTEST.addAttribute( 'position', new THREE.BufferAttribute( positionsTEST, 3 ) );
+
+	// material
+	let materialTEST = new THREE.PointsMaterial( { color: 0x00ff00 } );
+
+	//points
+  testPoints = new THREE.Points(geometryTEST,materialTEST);
+	testPoints.position.set(0,0,0);
+	scene.add( testPoints );
+
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 	scene.add(ambientLight);
 
@@ -192,7 +209,7 @@ function update()
   requestAnimationFrame( update );
 	//positions = facialPoints.geometry.attributes.position.array;
 	facialPoints.geometry.attributes.position.needsUpdate = true;
-
+	testPoints.geometry.attributes.position.needsUpdate = true;
 	render();
 	//update();
 }
@@ -223,7 +240,7 @@ asmWorker.onmessage = function (e) {
         }
     }
     else {
-
+			//debugger
       let updatedpoints = updateFacialPoints(e);
 			let eyedistance = calculateEyesDistance(updatedpoints, e.data.features.length);
 			hideShowPoints(e.data.features.length);
@@ -264,13 +281,13 @@ function updateFacialPoints(facialpoints){
 		positions[ index ++ ] = depth;
   }
 
-	index = 0;
+	/*index = 0;
 	x = positions[index ++];
 	y = positions[index ++];
 	selectedObject = scene.getObjectByName("cap");
 	//calcular bbox cap
 	selectedObject.position.set(x,y,0);
-	selectedObject.scale.set(4, 4, 4);
+	selectedObject.scale.set(4, 4, 4);*/
 
 	return positions;
 }
@@ -278,22 +295,25 @@ function updateFacialPoints(facialpoints){
 function hideShowPoints(facialPointsLength){
 	if(facialPointsLength === 0 && isPainted != false){
 		scene.remove(facialPoints);
+		scene.remove(testPoints);
 		cap.visible = false;
 		isPainted = false;
 	}
 	else if (facialPointsLength != 0 && isPainted != true) {
 		scene.add(facialPoints);
+		scene.add(testPoints);
 		cap.visible = true;
 		isPainted = true;
 	}
 }
 
 function calculateEyesDistance(positions, facialpointssize){
-	//debugger
+
 	if(!facialpointssize)
 		return;
 
-	let eyesDistanceValue;
+	let test = 0;
+	let eyesDistanceValue, pos;
 	let eyePoints = [];
 	eyePoints.mineye1 = 37;
 	eyePoints.maxeye1 = 42;
@@ -302,21 +322,26 @@ function calculateEyesDistance(positions, facialpointssize){
 	eyePoints.sizeeye = (eyePoints.maxeye1 - eyePoints.mineye1) + 1;
 	let sumPoints = [];
 	sumPoints.xeye1 = sumPoints.yeye1 = sumPoints.xeye2 = sumPoints.yeye2 = 0;
-	let vectorSize = 3;
-	let indexEye1 = vectorSize * eyePoints.mineye1;
-	let indexEye2 = vectorSize * eyePoints.mineye2;
+	let indexEye1 = eyePoints.mineye1;
+	let indexEye2 = eyePoints.mineye2;
 	let centerEyePointsAvg = [];
 
-	for( let i=indexEye1; i < eyePoints.maxeye1 * vectorSize; i++){
-			sumPoints.xeye1 = sumPoints.xeye1 + positions[indexEye1 ++];
-			sumPoints.yeye1 = sumPoints.yeye1 + positions[indexEye1 ++];
-			indexEye1 ++;
+
+	for( let i=0; i < eyePoints.sizeeye; i++){
+		pos = (indexEye1 - 1) * vectorSize;
+		sumPoints.xeye1 = sumPoints.xeye1 + positions[pos];
+		sumPoints.yeye1 = sumPoints.yeye1 + positions[pos + 1];
+		//console.log("Eye 1 point " +  indexEye1  + ": " +  positions[pos] + "," + positions[pos + 1]);
+		indexEye1 ++;
 	}
 
-	for( let i=indexEye2; i < eyePoints.maxeye2 * vectorSize; i++){
-			sumPoints.xeye2 = sumPoints.xeye2 + positions[indexEye2 ++];
-			sumPoints.yeye2 = sumPoints.yeye2 + positions[indexEye2 ++];
-			indexEye2 ++;
+
+	for( let i=0; i < eyePoints.sizeeye; i++){
+		pos = (indexEye2 - 1) * vectorSize;
+		sumPoints.xeye2 = sumPoints.xeye2 + positions[pos];
+		sumPoints.yeye2 = sumPoints.yeye2 + positions[pos + 1];
+		//console.log("Eye 2 point " +  indexEye2  + ": " +  positions[pos] + "," + positions[pos + 1]);
+		indexEye2 ++;
 	}
 
 	centerEyePointsAvg.xeye1 = sumPoints.xeye1 / eyePoints.sizeeye;
@@ -324,6 +349,22 @@ function calculateEyesDistance(positions, facialpointssize){
 	centerEyePointsAvg.xeye2 = sumPoints.xeye2 / eyePoints.sizeeye;
 	centerEyePointsAvg.yeye2 = sumPoints.yeye2 / eyePoints.sizeeye;
 
+	//console.log("Eye 1 center point: " +  centerEyePointsAvg.xeye1 + "," + centerEyePointsAvg.yeye1);
+	//console.log("Eye 2 center point: " +  centerEyePointsAvg.xeye2 + "," + centerEyePointsAvg.yeye2);
+
+	//debugger
+	positions = testPoints.geometry.attributes.position.array;
+	let x,y,z;
+	let index = 0;
+	const depth = 3;
+	//for (let i=0; i< 6; i++) {
+		positions[ 0 ] = centerEyePointsAvg.xeye1;
+		positions[ 1] = centerEyePointsAvg.yeye1;
+		positions[ 3 ] = centerEyePointsAvg.xeye2;
+		positions[ 4 ] = centerEyePointsAvg.yeye2;
+		positions[ 2 ] = positions[ 5 ] =  depth;
+
+  //}
 	//calculates points eyesDistance
 	eyesDistanceValue = Math.hypot(centerEyePointsAvg.xeye2 - centerEyePointsAvg.xeye1, centerEyePointsAvg.yeye2 - centerEyePointsAvg.yeye1 );
 
@@ -331,5 +372,19 @@ function calculateEyesDistance(positions, facialpointssize){
 }
 
 function scalateObjectToFace(eyesdistance, object){
+
+	if(!eyesdistance)
+		return;
+	let bboxdistancex = object.max.x - object.min.x;
+	let scalatecoeficient = eyesdistance / bboxdistancex ;
+	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
+
+	const selectedPoint = 17;
+	x = positions[selectedPoint * vectorSize];
+	y = positions[selectedPoint * vectorSize + 1];
+	selectedObject = scene.getObjectByName("cap");
+	//calcular bbox cap
+	selectedObject.position.set(x,y,0);
+	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
 
 }
