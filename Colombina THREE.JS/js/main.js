@@ -14,6 +14,18 @@ let ratioPixels = [];
 const MAX_POINTS = 68;
 let vectorSize = 3;
 
+//PROVISIONAL DIRTY VARIABLES TO DELETE
+let capPoint = glassesPoint = 28; //sum 5 y
+let mustachePoint =  52;
+const selectedPoint = mustachePoint;
+const offset = 0;
+const pathmoustachemat = "models/moustache/Mustache.mtl";
+const pathglassesmat = "models/glasses/glasses.mtl";
+const pathcapmat = "models/cap/objCap.mtl";
+const pathmoustacheobj = "models/moustache/Mustache.obj";
+const pathglassesobj = "models/glasses/glasses.obj";
+const pathcapobj = "models/cap/objCap.obj";
+
 let canvases = {};
 canvases.running = false;
 canvases.ready = false;
@@ -176,13 +188,13 @@ function init()
 
 	//Load material and obj
 	let mtlLoader = new THREE.MTLLoader();
-	mtlLoader.load("models/cap/objCap.mtl", function(materials){
+	mtlLoader.load(pathmoustachemat, function(materials){
 
 		materials.preload();
 		let objLoader = new THREE.OBJLoader();
 		objLoader.setMaterials(materials);
 
-		objLoader.load("models/cap/objCap.obj", function(mesh){
+		objLoader.load(pathmoustacheobj, function(mesh){
 			mesh.name = "cap";
 			mesh.traverse(function(node){
 				if( node instanceof THREE.Mesh ){
@@ -232,6 +244,14 @@ function render()
 	renderer.render( scene, camera );
 }
 
+function rotateObj(anglex,angley,anglez){
+  let cap = scene.getObjectByName("cap");
+
+  cap.rotateX(anglex);
+  cap.rotateY(angley);
+  cap.rotateZ(anglez);
+}
+
 asmWorker.onmessage = function (e) {
     if (e.data.msg == 'asm') {
         if (canvases.ready) { setTimeout(detect, 2000)}
@@ -247,6 +267,7 @@ asmWorker.onmessage = function (e) {
 			cap = scene.getObjectByName("cap");
 			bbox = bbox.setFromObject(cap);
 			scalateObjectToFace(eyedistance, bbox);
+			//rotateObj(1,0,0);
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }
@@ -271,23 +292,15 @@ function startWorker(imageData, command, type) {
 
 function updateFacialPoints(facialpoints){
 	positions = facialPoints.geometry.attributes.position.array;
-	let x,y,z;
+	let x,y;
 	let index = 0;
-	const depth = 3;
+	const z = 3;
 	for (let i=0; i< facialpoints.data.features.length; i++) {
 		let rect = facialpoints.data.features[i];
-		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
-		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
-		positions[ index ++ ] = depth;
+		positions[ index ++ ] = (((rect.x-2) * canvases.scale)-videoImage.width/2) / ratioPixels.x;
+		positions[ index ++ ] = -(((rect.y-2) * canvases.scale)-videoImage.height/2) / ratioPixels.y;
+		positions[ index ++ ] = z;
   }
-
-	/*index = 0;
-	x = positions[index ++];
-	y = positions[index ++];
-	selectedObject = scene.getObjectByName("cap");
-	//calcular bbox cap
-	selectedObject.position.set(x,y,0);
-	selectedObject.scale.set(4, 4, 4);*/
 
 	return positions;
 }
@@ -315,15 +328,19 @@ function calculateEyesDistance(positions, facialpointssize){
 	let test = 0;
 	let eyesDistanceValue, pos;
 	let eyePoints = [];
-	eyePoints.mineye1 = 37;
-	eyePoints.maxeye1 = 42;
-	eyePoints.mineye2 = 43;
-	eyePoints.maxeye2 = 48;
-	eyePoints.sizeeye = (eyePoints.maxeye1 - eyePoints.mineye1) + 1;
+	//mineye1
+	eyePoints[0] = 37;
+	//maxeye1
+	eyePoints[1] = 42;
+	//mineye2
+	eyePoints[2] = 43;
+	//maxeye2
+	eyePoints[3] = 48;
+	eyePoints.sizeeye = (eyePoints[1] - eyePoints[0]) + 1;
 	let sumPoints = [];
 	sumPoints.xeye1 = sumPoints.yeye1 = sumPoints.xeye2 = sumPoints.yeye2 = 0;
-	let indexEye1 = eyePoints.mineye1;
-	let indexEye2 = eyePoints.mineye2;
+	let indexEye1 = eyePoints[0];
+	let indexEye2 = eyePoints[2];
 	let centerEyePointsAvg = [];
 
 
@@ -354,15 +371,15 @@ function calculateEyesDistance(positions, facialpointssize){
 
 	//debugger
 	positions = testPoints.geometry.attributes.position.array;
-	let x,y,z;
+	let x,y;
 	let index = 0;
-	const depth = 3;
+	const z = 3;
 	//for (let i=0; i< 6; i++) {
-		positions[ 0 ] = centerEyePointsAvg.xeye1;
-		positions[ 1] = centerEyePointsAvg.yeye1;
-		positions[ 3 ] = centerEyePointsAvg.xeye2;
-		positions[ 4 ] = centerEyePointsAvg.yeye2;
-		positions[ 2 ] = positions[ 5 ] =  depth;
+	positions[ 0 ] = centerEyePointsAvg.xeye1;
+	positions[ 1 ] = centerEyePointsAvg.yeye1;
+	positions[ 3 ] = centerEyePointsAvg.xeye2;
+	positions[ 4 ] = centerEyePointsAvg.yeye2;
+	positions[ 2 ] = positions[ 5 ] =  z;
 
   //}
 	//calculates points eyesDistance
@@ -378,10 +395,10 @@ function scalateObjectToFace(eyesdistance, object){
 	let bboxdistancex = object.max.x - object.min.x;
 	let scalatecoeficient = eyesdistance / bboxdistancex ;
 	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
-
-	const selectedPoint = 17;
+	//debugger
+	//const selectedPoint = 28;
 	x = positions[selectedPoint * vectorSize];
-	y = positions[selectedPoint * vectorSize + 1];
+	y = positions[selectedPoint * vectorSize + 1] + offset;
 	selectedObject = scene.getObjectByName("cap");
 	//calcular bbox cap
 	selectedObject.position.set(x,y,0);
