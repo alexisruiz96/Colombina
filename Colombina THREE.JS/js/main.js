@@ -17,8 +17,8 @@ let vectorSize = 3;
 //PROVISIONAL DIRTY VARIABLES TO DELETE
 let capPoint = glassesPoint = 28; //sum 5 y
 let mustachePoint =  52;
-const selectedPoint = mustachePoint;
-const offset = 0;
+const selectedPoint = capPoint;
+const offset = 15;
 const pathmoustachemat = "models/moustache/Mustache.mtl";
 const pathglassesmat = "models/glasses/glasses.mtl";
 const pathcapmat = "models/cap/objCap.mtl";
@@ -188,13 +188,13 @@ function init()
 
 	//Load material and obj
 	let mtlLoader = new THREE.MTLLoader();
-	mtlLoader.load(pathmoustachemat, function(materials){
+	mtlLoader.load(pathcapmat, function(materials){
 
 		materials.preload();
 		let objLoader = new THREE.OBJLoader();
 		objLoader.setMaterials(materials);
 
-		objLoader.load(pathmoustacheobj, function(mesh){
+		objLoader.load(pathcapobj, function(mesh){
 			mesh.name = "cap";
 			mesh.traverse(function(node){
 				if( node instanceof THREE.Mesh ){
