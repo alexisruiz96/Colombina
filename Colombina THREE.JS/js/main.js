@@ -17,7 +17,7 @@ let vectorSize = 3;
 //PROVISIONAL DIRTY VARIABLES TO DELETE
 let capPoint = glassesPoint = 28; //sum 5 y
 let mustachePoint =  52;
-const selectedPoint = capPoint;
+const selectedPoint = mustachePoint;
 const offset = 15;
 const pathmoustachemat = "models/moustache/Mustache.mtl";
 const pathglassesmat = "models/glasses/glasses.mtl";
@@ -174,27 +174,15 @@ function init()
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 	scene.add(ambientLight);
 
-	light = new THREE.PointLight(0xffffff, 0.8, 18);
-	light.position.set(-3,6,-3);
-	light.castShadow = true;
-	light.shadow.camera.near = 0.1;
-	light.shadow.camera.far = 25;
-	scene.add(light);
-
-
-	let textureLoader = new THREE.TextureLoader();
-	capTexture = textureLoader.load('models/cap/misc16L.jpg');
-	capBump = textureLoader.load('models/cap/miscbump.jpg');
-
 	//Load material and obj
 	let mtlLoader = new THREE.MTLLoader();
-	mtlLoader.load(pathcapmat, function(materials){
+	mtlLoader.load(pathmoustachemat, function(materials){
 
 		materials.preload();
 		let objLoader = new THREE.OBJLoader();
 		objLoader.setMaterials(materials);
 
-		objLoader.load(pathcapobj, function(mesh){
+		objLoader.load(pathmoustacheobj, function(mesh){
 			mesh.name = "cap";
 			mesh.traverse(function(node){
 				if( node instanceof THREE.Mesh ){

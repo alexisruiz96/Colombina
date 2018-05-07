@@ -1,15 +1,27 @@
 // MAIN
 let asmWorker = new Worker('asm-worker.js');
 
-var video = document.querySelector("#monitor");
+let video = document.querySelector("#monitor");
 // standard global variables
-var container, scene, camera, renderer, controls, stats;
-let objType = 'faceDetect';
+let container, scene, camera, renderer, controls, stats;
+const objType = 'faceDetect';
+
+let isPainted,selectedObject;
 
 // custom global variables
-var video, videoImage, videoImageContext, videoTexture, positions, facialPoints;
-var ratioPixels = [];
-var MAX_POINTS = 68;
+let videoImage, videoImageContext, videoTexture, facialPoints, cap, bbox, centerEyePoints;
+let ratioPixels = [];
+const MAX_POINTS = 68;
+let calculations, loadermesh;
+let vectorSize = 3;
+
+//PROVISIONAL DIRTY VARIABLES TO DELETE
+let capPoint = glassesPoint = 28; //sum 5 y
+let mustachePoint =  52;
+const selectedPoint = capPoint;
+const offset = 15;
+const pathglassesmat = "models/glasses/glasses.mtl";
+const pathglassesobj = "models/glasses/glasses.obj";
 
 let canvases = {};
 canvases.running = false;
@@ -28,14 +40,24 @@ canvases.dummy.canvas.height = canvases.height;
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 window.URL = window.URL || window.webkitURL;
 
-var camvideo = document.getElementById('monitor');
+let camvideo = document.getElementById('monitor');
 
-if (!navigator.getUserMedia)
-{
-	document.getElementById('errorMessage').innerHTML =
-		'Sorry. <code>navigator.getUserMedia()</code> is not available.';
-} else {
-	navigator.getUserMedia({video: true}, gotStream, noStream);
+startEnvironment();
+
+function startEnvironment(){
+	config();
+	init();
+	update();
+}
+
+function config(){
+	if (!navigator.getUserMedia)
+	{
+		document.getElementById('errorMessage').innerHTML =
+			'Sorry. <code>navigator.getUserMedia()</code> is not available.';
+	} else {
+		navigator.getUserMedia({video: true}, gotStream, noStream);
+	}
 }
 
 function gotStream(stream)
@@ -55,28 +77,26 @@ function gotStream(stream)
 
 function noStream(e)
 {
-	var msg = 'No camera available.';
-	if (e.code == 1)
+	let msg = 'No camera available.';
+	if (e.code === 1)
 	{   msg = 'User denied access to use camera.';   }
 	document.getElementById('errorMessage').textContent = msg;
 }
 
-init();
-animate();
-
-// FUNCTIONS
 function init()
 {
 	// SCENE
 	scene = new THREE.Scene();
+	loadermesh = new LoaderMesh();
+	isPainted = false;
 
 	// CAMERA
-	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
+	const SCREEN_WIDTH = window.innerWidth/2, SCREEN_HEIGHT = window.innerHeight/2;
+	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
-	camera.position.set(0,50,400);
-	camera.lookAt(scene.position);
+	camera.position.set(0,0,150);
+	camera.lookAt(0, 0, 0);
 
 	// RENDERER
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
@@ -84,27 +104,20 @@ function init()
 	container = document.getElementById( 'ThreeJS' );
 	container.appendChild( renderer.domElement );
 
-	///////////
-	// VIDEO //
-	///////////
-
+	// VIDEO
 	video = document.getElementById( 'monitor' );
-
 	videoImage = document.getElementById( 'videoImage' );
 	videoImageContext = videoImage.getContext( '2d' );
-	// background color if no video present
-	videoImageContext.fillStyle = '#000000';
+	videoImageContext.fillStyle = '#000000'; // background color if no video present
 	videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
-
 	videoTexture = new THREE.Texture( videoImage );
 	videoTexture.minFilter = THREE.LinearFilter;
 	videoTexture.magFilter = THREE.LinearFilter;
 
-	var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
-	// the geometry on which the movie will be displayed;
-	// 		movie image will be scaled to fit these dimensions.
-	var movieGeometry = new THREE.PlaneGeometry( 45, 45, 1, 1 );
-	var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+	//CAMERA ON PLANE AS A TEXTURE
+	let movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
+	let movieGeometry = new THREE.PlaneGeometry( 220, 120, 1, 1 );
+	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 	movieScreen.name = "movieScreen";
 	movieScreen.position.set(0,0,0);
 	scene.add(movieScreen);
@@ -113,48 +126,63 @@ function init()
 	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
 	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
-	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+	let light = new THREE.AmbientLight( 0x404040 ); // soft white light
 	scene.add( light );
 
 	//FACIAL POINTS
-	// geometry
-	var geometry = new THREE.BufferGeometry();
-
-	// attributes
-	var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+	let geometry = new THREE.BufferGeometry();
+	let positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
 	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-
-	// drawcalls
-	drawCount = 68; // draw the first 2 points, only
-	geometry.setDrawRange( 0, drawCount );
-
-	// material
-	var material = new THREE.PointsMaterial( { color: 0xff0000 } );
-
-	//points
+	let material = new THREE.PointsMaterial( { color: 0xff0000 } );
   facialPoints = new THREE.Points(geometry,material);
 	facialPoints.position.set(0,0,0);
+	facialPoints.name = "facialPoints";
 	scene.add( facialPoints );
 
-	camera.position.set(0,0,150);
-	camera.lookAt(0, 0, 0);
+	//EYES CENTER
+	let geometryCenters = new THREE.BufferGeometry();
+	let max_test = 2;
+	let positionsCenters = new Float32Array( max_test * 3 ); // 3 vertices per point
+	geometryCenters.addAttribute( 'position', new THREE.BufferAttribute( positionsCenters, 3 ) );
+	let materialCenters = new THREE.PointsMaterial( { color: 0x00ff00 } );
+  centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
+	centerEyePoints.position.set(0,0,0);
+	centerEyePoints.name = "centerEyePoints";
+	scene.add( centerEyePoints );
+
+	//AMBIENT LIGHT
+	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+	scene.add(ambientLight);
+
+	//SIMPLE LIGHT
+	light = new THREE.PointLight(0xffffff, 0.8, 18);
+	light.position.set(-3,6,-3);
+	light.castShadow = true;
+	light.shadow.camera.near = 0.1;
+	light.shadow.camera.far = 25;
+	scene.add(light);
+
+	//LOADING AVAILABLE OBJECTS
+	loadermesh.loadMeshWithMaterial("models/cap/objCap.mtl", "models/cap/objCap.obj", "cap");
+	loadermesh.loadMeshWithMaterial("models/moustache/Mustache.mtl", "models/moustache/Mustache.obj", "moustache");
+
+	// BOUNDING BOX
+	bbox = new THREE.Box3();
+
+	//CLASS OF CALCULATIONS
+	calculations = new Calculator(scene.children);
 
 }
 
-function animate()
+function update()
 {
-  requestAnimationFrame( animate );
-	//positions = facialPoints.geometry.attributes.position.array;
+  requestAnimationFrame( update );
+	calculations.scene = scene.children;
 	facialPoints.geometry.attributes.position.needsUpdate = true;
+	centerEyePoints.geometry.attributes.position.needsUpdate = true;
 	render();
-	//update();
-}
 
-/*function update()
-{
-	controls.update();
-	stats.update();
-}*/
+}
 
 function render()
 {
@@ -168,24 +196,6 @@ function render()
 	renderer.render( scene, camera );
 }
 
-
-function updateFacialPoints(facialpoints){
-	positions = facialPoints.geometry.attributes.position.array;
-
-	var x,y,z;
-	var index = 0;
-	for (let i=0; i< facialpoints.data.features.length; i++) {
-		//debugger
-		let rect = facialpoints.data.features[i];
-		//console.log("x: " + rect.x);
-		//console.log("y: " + rect.y);
-		positions[ index ++ ] = ((rect.x * canvases.scale)-videoImage.width/2) / ratioPixels.x;
-		positions[ index ++ ] = -(((rect.y * canvases.scale)-videoImage.height/2) / ratioPixels.y);
-		positions[ index ++ ] = rect.z;
-		//console.log("Count index: " + index);
-  }
-}
-
 asmWorker.onmessage = function (e) {
     if (e.data.msg == 'asm') {
         if (canvases.ready) { setTimeout(detect, 2000)}
@@ -194,11 +204,78 @@ asmWorker.onmessage = function (e) {
         }
     }
     else {
-
-      updateFacialPoints(e);
+			//debugger
+			let facepointslength = e.data.features.length
+			hideShowPoints(facepointslength);
+			if(facepointslength){
+				let updatedpoints = calculations.updateFacialPoints(e, "facialPoints");
+				let eyedistance = calculations.calculateEyesDistance(updatedpoints, facepointslength);
+				updateSceneObject(eyedistance,updatedpoints, "cap");
+				updateSceneObject(eyedistance,updatedpoints, "moustache");
+			}
+			//rotateObj(1,0,0);
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }
+}
+function hideShowPoints(facialPointsLength){
+	let cap = scene.getObjectByName("cap");
+	let moustache = scene.getObjectByName("moustache");
+	if(facialPointsLength === 0 && isPainted != false){
+		scene.remove(facialPoints);
+		scene.remove(centerEyePoints);
+		cap.visible = false;
+		moustache.visible = false;
+		isPainted = false;
+	}
+	else if (facialPointsLength != 0 && isPainted != true) {
+		scene.add(facialPoints);
+		scene.add(centerEyePoints);
+		cap.visible = true;
+		moustache.visible = true;
+		isPainted = true;
+	}
+}
+
+function updateSceneObject(eyedistance, updatedpoints, name){
+	let object = scene.getObjectByName(name);
+	bbox = bbox.setFromObject(object);
+	scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
+}
+
+function scalateObjectToFace(eyesdistance, object, positions, name){
+
+	if(!eyesdistance)
+		return;
+	let bboxdistancex = object.max.x - object.min.x;
+	let scalatecoeficient = eyesdistance / bboxdistancex ;
+	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
+	//debugger
+	//const selectedPoint = 28;
+	x = positions[selectedPoint * vectorSize];
+	y = positions[selectedPoint * vectorSize + 1] + offset;
+	selectedObject = scene.getObjectByName(name);
+	//calcular bbox cap
+	selectedObject.position.set(x,y,0);
+	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
+
+}
+
+function startWorker(imageData, command, type) {
+	//update();
+  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
+  let message = {
+      cmd: command,
+      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
+  };
+  asmWorker.postMessage(message);
+}
+
+function rotateObj(anglex,angley,anglez){
+  let cap = scene.getObjectByName("cap");
+  cap.rotateX(anglex);
+  cap.rotateY(angley);
+  cap.rotateZ(anglez);
 }
 
 function detect(type) {
@@ -206,14 +283,4 @@ function detect(type) {
         canvases.running = true;
         startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
     }
-}
-
-function startWorker(imageData, command, type) {
-	//animate();
-  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
-  let message = {
-      cmd: command,
-      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
-  };
-  asmWorker.postMessage(message);
 }
