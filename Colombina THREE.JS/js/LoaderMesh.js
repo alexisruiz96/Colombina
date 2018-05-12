@@ -5,7 +5,8 @@ class LoaderMesh {
       //this.objectLoader = new THREE.OBJLoader();
   }
 
-  loadMeshWithMaterial(pathmaterial, pathobject, name){
+//wrap things in a variable and pass it
+  loadMeshWithMaterial(pathmaterial, pathobject, info){
 
     let pathmat = pathmaterial;
     let pathobj = pathobject;
@@ -16,7 +17,9 @@ class LoaderMesh {
   		objectLoader.setMaterials(materials);
 
   		objectLoader.load(pathobj, function(mesh){
-  			mesh.name = name;
+  			mesh.name = info.name;
+        mesh.offset = info.offset;
+        mesh.facialpoint = info.facepoint;
   			mesh.traverse(function(node){
   				if( node instanceof THREE.Mesh ){
   					node.castShadow = true;
@@ -29,5 +32,13 @@ class LoaderMesh {
 
   	});
 
+  }
+  loadInfo(offset, name, facepoint){
+    let info = [];
+    info.offset = offset;
+    info.name = name;
+    info.facepoint = facepoint;
+
+    return info;
   }
 }

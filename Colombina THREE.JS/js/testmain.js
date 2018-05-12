@@ -16,17 +16,12 @@ let calculations, loadermesh;
 let vectorSize = 3;
 
 //PROVISIONAL DIRTY VARIABLES TO DELETE
-let capPoint = glassesPoint = 28; //sum 5 y
-let mustachePoint =  52;
-const selectedPoint = capPoint;
-const offset = 15;
 const pathglassesmat = "models/glasses/glasses.mtl";
 const pathglassesobj = "models/glasses/glasses.obj";
 
 let canvases = {};
 canvases.running = false;
 canvases.ready = false;
-
 canvases.width = 640;
 canvases.height = 480;
 canvases.scale = 2;
@@ -91,7 +86,7 @@ function init()
 	isPainted = false;
 
 	// CAMERA
-	const SCREEN_WIDTH = window.innerWidth/2, SCREEN_HEIGHT = window.innerHeight/2;
+	const SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
@@ -116,7 +111,7 @@ function init()
 
 	//CAMERA ON PLANE AS A TEXTURE
 	let movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
-	let movieGeometry = new THREE.PlaneGeometry( 220, 120, 1, 1 );
+	let movieGeometry = new THREE.PlaneGeometry( 80, 80, 1, 1 );
 	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 	movieScreen.name = "movieScreen";
 	movieScreen.position.set(0,0,0);
@@ -163,8 +158,11 @@ function init()
 	scene.add(light);
 
 	//LOADING AVAILABLE OBJECTS
-	loadermesh.loadMeshWithMaterial("models/cap/objCap.mtl", "models/cap/objCap.obj", "cap");
-	loadermesh.loadMeshWithMaterial("models/moustache/Mustache.mtl", "models/moustache/Mustache.obj", "moustache");
+	//loadInfo(offset, name, facepoint)
+	let info = loadermesh.loadInfo(55, "cap", 28);
+	loadermesh.loadMeshWithMaterial("models/cap/objCap.mtl", "models/cap/objCap.obj", info);
+	info = loadermesh.loadInfo(0, "moustache", 52);
+	loadermesh.loadMeshWithMaterial("models/moustache/Mustache.mtl", "models/moustache/Mustache.obj", info);
 
 	// BOUNDING BOX
 	bbox = new THREE.Box3();
@@ -251,10 +249,10 @@ function scalateObjectToFace(eyesdistance, object, positions, name){
 	let scalatecoeficient = eyesdistance / bboxdistancex ;
 	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
 	//debugger
-	//const selectedPoint = 28;
-	x = positions[selectedPoint * vectorSize];
-	y = positions[selectedPoint * vectorSize + 1] + offset;
 	selectedObject = scene.getObjectByName(name);
+	x = positions[selectedObject.facialpoint * vectorSize];
+	y = positions[selectedObject.facialpoint * vectorSize + 1] + (selectedObject.offset * scalatecoeficient)/2;
+
 	//calcular bbox cap
 	selectedObject.position.set(x,y,0);
 	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
