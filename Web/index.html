@@ -1,25 +1,78 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/fontawesome-all.min.css">
-	<link rel="stylesheet" href="css/style.css">
-	<script src="js/jquery.min.js"></script>
-	<script src="js/popper.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/funct.js"></script>
-  </head>
-  <body>
-	<header>
-	</header>
-	<div class="content">
-		<div class=container-fluid">
-			<h1 data-toggle="tooltip" title="Hola">Alexis matao</h1>
-		</div>
-	</div>
-	<footer>
-	</footer>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/funct.js"></script>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">
+        <i class="fab fa-fw fa-wolf-pack-battalion"></i>
+        Colombina
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+        </ul>
+        <a href="https://github.com/alexisruiz96" target="_blank" class="navbar-text text-white">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12" id="canvasweb">
+          <canvas id="canvas" width="300" height="300"></canvas>
+          <div class="position-absolute" id="objectsVar">
+            <div class="btn-group-vertical">
+              <button class="btn btn-light shown" id="toggleObjectVar">
+                <i class="fas fa-fw fa-angle-double-up"></i>
+              </button>
+              <div id="listObjects">
+                <button class="btn btn-light sceneObjects">
+                  <i class="fas fa-fw fa-glasses"></i>
+                </button>
+                <button class="btn btn-light sceneObjects">
+                  <i class="fas fa-fw fa-graduation-cap"></i>
+                </button>
+                <button class="btn btn-light sceneObjects">
+                  <i class="fas fa-fw fa-user-md"></i>
+                </button>
+                <button class="btn btn-light sceneObjects">
+                  <i class="fas fa-fw fa-bug"></i>
+                </button>
+                <button class="btn btn-light sceneObjects">
+                  <i class="fas fa-fw fa-crown"></i>
+                </button>
+                <button class="btn btn-light sceneObjects">
+                  <i class="fab fa-fw fa-jenkins"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+  </footer>
+</body>
 </html>
