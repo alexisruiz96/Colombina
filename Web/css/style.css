@@ -8,10 +8,22 @@ body{
   height: 100%;
 }
 
+#toggleVar{
+  font-size: 2rem;
+  left: 2%;
+  top: 8%;
+  width: 5%;
+  max-width: 5%;
+}
+
+#toggleVar .btn-group-vertical{
+  width: 100%;
+}
+
 #objectsVar{
   font-size: 2rem;
   left: 2%;
-  top: 10%;
+  top: 24%;
   width: 5%;
   max-width: 5%;
 }
