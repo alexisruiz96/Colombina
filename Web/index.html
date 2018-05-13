@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Colombina project">
+  <meta name="author" content="Alexis">
+  <title>Colombina</title>
+  <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/fontawesome-all.min.css">
   <link rel="stylesheet" href="css/style.css">
@@ -18,13 +22,13 @@
         <i class="fab fa-fw fa-wolf-pack-battalion"></i>
         Colombina
       </a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="index.html">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Link</a>
@@ -36,49 +40,54 @@
       </div>
     </nav>
   </header>
-  <div class="content">
+  <div id="content">
+    <div id="toggleVar">
+      <button type="button" class="btn btn-light shown" id="toggleObjectVar" data-toggle="tooltip" title="Click to show/hide all the scene objects">
+        <i class="fas fa-fw fa-angle-double-up"></i>
+      </button>
+    </div>
+    <div id="objectsVar">
+      <div class="btn-group-vertical">
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-glasses"></i>
+        </button>
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-graduation-cap"></i>
+        </button>
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-user-md"></i>
+        </button>
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-bug"></i>
+        </button>
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-crown"></i>
+        </button>
+        <button type="button" class="btn btn-light sceneObjects">
+          <i class="fab fa-fw fa-jenkins"></i>
+        </button>
+      </div>
+    </div>
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-12" id="canvasweb">
-          <canvas id="canvas" width="300" height="300"></canvas>
-          <div class="position-absolute" id="toggleVar">
-            <div class="btn-group-vertical">
-              <div>
-                <button class="btn btn-light up" id="toggleObjectVar">
-                  <i class="fas fa-fw fa-angle-double-up"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="position-absolute" id="objectsVar">
-            <div class="btn-group-vertical">
-              <div class="shown" id="listObjects">
-                <button class="btn btn-light sceneObjects">
-                  <i class="fas fa-fw fa-glasses"></i>
-                </button>
-                <button class="btn btn-light sceneObjects">
-                  <i class="fas fa-fw fa-graduation-cap"></i>
-                </button>
-                <button class="btn btn-light sceneObjects">
-                  <i class="fas fa-fw fa-user-md"></i>
-                </button>
-                <button class="btn btn-light sceneObjects">
-                  <i class="fas fa-fw fa-bug"></i>
-                </button>
-                <button class="btn btn-light sceneObjects">
-                  <i class="fas fa-fw fa-crown"></i>
-                </button>
-                <button class="btn btn-light sceneObjects">
-                  <i class="fab fa-fw fa-jenkins"></i>
-                </button>
-              </div>
-            </div>
-          </div>
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-10" id="canvasWeb">
+          <canvas id="canvas"></canvas>
+          <img id="imgBg" style="display: none;"/>
         </div>
       </div>
     </div>
   </div>
   <footer>
+    <div class="container">
+      <span class="text-muted mr-2">
+        <i class="far fa-fw fa-images"></i>
+        CHANGE BACKGROUNDS
+      </span>
+      <a href="#" class="setBg mr-2" data-img="bg1.png">KIDS</a>
+      <a href="#" class="setBg mr-2" data-img="bg2.png">PLANTS</a>
+      <a href="#" class="setBg mr-2" data-img="bg3.png">JUNGLE</a>
+      <a href="#" class="setBg active" data-img="none">REMOVE</a>
+    </div>
   </footer>
 </body>
 </html>
