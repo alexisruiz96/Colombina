@@ -14,6 +14,12 @@
   <script src="js/popper.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   <script src="js/funct.js"></script>
+  <script src="js/three.js"></script>
+	<script src="js/MTLLoader.js"></script>
+	<script src="js/OBJLoader.js"></script>
+	<script src="js/LoaderMesh.js"></script>
+	<script src="js/Calculator.js"></script>
+
 </head>
 <body>
   <header>
@@ -41,6 +47,9 @@
     </nav>
   </header>
   <div id="content">
+    <video id="monitor" style="display:none; float:left;" width="620px" height="480px" autoplay></video>
+		<canvas id="videoImage" style="display: none; float:left;" width="620px" height="480px"></canvas>
+		<canvas id="dummy" style="position:fixed; left:-1000px; display: none;"></canvas>
     <div id="toggleVar">
       <button type="button" class="btn btn-light shown" id="toggleObjectVar" data-toggle="tooltip" title="Click to show/hide all the scene objects">
         <i class="fas fa-fw fa-angle-double-up"></i>
@@ -71,7 +80,6 @@
     <div class="container-fluid">
       <div class="row justify-content-center">
         <div class="col-12 col-md-10" id="canvasWeb">
-          <canvas id="canvas"></canvas>
           <img id="imgBg" style="display: none;"/>
         </div>
       </div>
@@ -89,5 +97,6 @@
       <a href="#" class="setBg active" data-img="none">REMOVE</a>
     </div>
   </footer>
+  <script src="js/testmain.js"></script>
 </body>
 </html>
