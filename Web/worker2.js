@@ -45,5 +45,4 @@ self.onmessage = function (e) {
 self.onerror = function (e) {
 	console.log(e);
 }
-debugger
 console.log('done loading worker')

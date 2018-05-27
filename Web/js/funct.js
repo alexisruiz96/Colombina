@@ -17,11 +17,24 @@ jQuery( document ).ready(function($) {
     if ($this.hasClass('active')) {
       $this.removeClass('active');
       // quitar objecto de escena
+      var name = e.target.id;
+      scene.remove(scene.getObjectByName(name));
     } else {
       $this.addClass('active');
       // poner objecto de escena
+      var name = e.target.id;
+      var objClickedMesh = getObject(name);
+      scene.add(objClickedMesh);
     }
   });
+
+  function getObject(name){
+    for (let i = 0; i < scene.sceneObjects.length; i++) {
+      if (scene.sceneObjects[i].name == name) {
+        return scene.sceneObjects[i];
+      }
+    }
+  }
 
   // Event when click on the toggleObjectVar
   $('body').on('click', '#toggleVar button#toggleObjectVar', function(e){

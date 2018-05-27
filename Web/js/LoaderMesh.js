@@ -6,10 +6,10 @@ class LoaderMesh {
   }
 
 //wrap things in a variable and pass it
-  loadMeshWithMaterial(pathmaterial, pathobject, info){
+  loadMeshWithMaterial(info){
 
-    let pathmat = pathmaterial;
-    let pathobj = pathobject;
+    let pathmat = info.pathmtl;
+    let pathobj = info.pathobj;
     this.materialLoader.load(pathmat, function(materials){
 
   		materials.preload();
@@ -27,17 +27,19 @@ class LoaderMesh {
   				}
   			});
 
-  			scene.add(mesh);
+  			scene.sceneObjects.push(mesh);
   		});
 
   	});
 
   }
-  loadInfo(offset, name, facepoint){
+  loadInfo(offset, name, facepoint, pathmtl, pathobj){
     let info = [];
     info.offset = offset;
     info.name = name;
     info.facepoint = facepoint;
+    info.pathmtl = pathmtl;
+    info.pathobj = pathobj;
 
     return info;
   }

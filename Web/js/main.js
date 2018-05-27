@@ -1,23 +1,21 @@
 // MAIN
 let asmWorker = new Worker('asm-worker.js');
-
 let video = document.querySelector("#monitor");
+
 // standard global variables
 let container, scene, camera, renderer, controls, stats;
 const objType = 'faceDetect';
 
-let isPainted,selectedObject;
-
 // custom global variables
-let videoImage, videoImageContext, videoTexture, facialPoints, cap, bbox, centerEyePoints;
+let videoImage, videoImageContext, videoTexture, facialPoints, cap, bbox,
+centerEyePoints, calculations, loadermesh, isPainted,selectedObject;
 let ratioPixels = [];
+let infoObjects = [];
+let sceneObjects = [];
 const MAX_POINTS = 68;
-let calculations, loadermesh;
 let vectorSize = 3;
-
-//PROVISIONAL DIRTY VARIABLES TO DELETE
-const pathglassesmat = "models/glasses/glasses.mtl";
-const pathglassesobj = "models/glasses/glasses.obj";
+let capPoint = 28;
+let lipsPoint = 52;
 
 let canvases = {};
 canvases.running = false;
@@ -32,11 +30,12 @@ canvases.dummy.context = canvases.dummy.canvas.getContext('2d');
 canvases.dummy.canvas.width = canvases.width;
 canvases.dummy.canvas.height = canvases.height;
 
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.mediaDevices.getUserMedia;
 window.URL = window.URL || window.webkitURL;
 
 let camvideo = document.getElementById('monitor');
 
+//Necesario abstraer la parte THREEJS a una capa inferior
 startEnvironment();
 
 function startEnvironment(){
@@ -82,22 +81,28 @@ function init()
 {
 	// SCENE
 	scene = new THREE.Scene();
+	scene.sceneObjects = [];
 	loadermesh = new LoaderMesh();
 	isPainted = false;
+	container = document.getElementById( 'canvasWeb' );
 
 	// CAMERA
-	const SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 2000;
+	const SCREEN_WIDTH = container.clientWidth, SCREEN_HEIGHT = container.clientHeight;
+	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 1000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	scene.add(camera);
 	camera.position.set(0,0,150);
 	camera.lookAt(0, 0, 0);
 
+	scene.add(camera);
+
+
 	// RENDERER
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
-	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	container = document.getElementById( 'canvasWeb' );
+	renderer.setSize(container.clientWidth, container.clientHeight);
 	container.appendChild( renderer.domElement );
+
+	//LISTENERS
+	window.addEventListener('resize', onWindowsResize, false);
 
 	// VIDEO
 	video = document.getElementById( 'monitor' );
@@ -121,7 +126,8 @@ function init()
 	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
 	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
-	let light = new THREE.AmbientLight( 0x404040 ); // soft white light
+	// soft white light
+	let light = new THREE.AmbientLight( 0x404040 );
 	scene.add( light );
 
 	//FACIAL POINTS
@@ -156,20 +162,22 @@ function init()
 	light.shadow.camera.near = 0.1;
 	light.shadow.camera.far = 25;
 	scene.add(light);
-
+	
 	//LOADING AVAILABLE OBJECTS
-	//loadInfo(offset, name, facepoint)
-	let info = loadermesh.loadInfo(55, "cap", 28);
-	loadermesh.loadMeshWithMaterial("models/cap/objCap.mtl", "models/cap/objCap.obj", info);
-	info = loadermesh.loadInfo(0, "moustache", 52);
-	loadermesh.loadMeshWithMaterial("models/moustache/Mustache.mtl", "models/moustache/Mustache.obj", info);
+	//loadInfo(offset, name, facepoint, pathmtl, pathobj)
+	//CAP
+	let info = loadermesh.loadInfo(55, "cap", capPoint, "models/cap/objCap.mtl", "models/cap/objCap.obj");
+	loadermesh.loadMeshWithMaterial(info);
+	//MOUSTACHE
+	info = loadermesh.loadInfo(0, "moustache", lipsPoint, "models/moustache/Mustache.mtl", "models/moustache/Mustache.obj");
+	loadermesh.loadMeshWithMaterial(info);
 
 	// BOUNDING BOX
 	bbox = new THREE.Box3();
 
 	//CLASS OF CALCULATIONS
 	calculations = new Calculator(scene.children);
-
+	startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 }
 
 function update()
@@ -208,6 +216,7 @@ asmWorker.onmessage = function (e) {
 			if(facepointslength){
 				let updatedpoints = calculations.updateFacialPoints(e, "facialPoints");
 				let eyedistance = calculations.calculateEyesDistance(updatedpoints, facepointslength);
+				//recorrer objetos anadidos y actualizarlos
 				updateSceneObject(eyedistance,updatedpoints, "cap");
 				updateSceneObject(eyedistance,updatedpoints, "moustache");
 			}
@@ -222,23 +231,30 @@ function hideShowPoints(facialPointsLength){
 	if(facialPointsLength === 0 && isPainted != false){
 		scene.remove(facialPoints);
 		scene.remove(centerEyePoints);
-		cap.visible = false;
-		moustache.visible = false;
+		//esta parte desaparecera, se añade o se quita de la escena el objeto
+		if(cap != undefined)
+			cap.visible = false;
+		if(moustache != undefined)
+			moustache.visible = false;
 		isPainted = false;
 	}
 	else if (facialPointsLength != 0 && isPainted != true) {
 		scene.add(facialPoints);
 		scene.add(centerEyePoints);
-		cap.visible = true;
-		moustache.visible = true;
+		if(cap != undefined)
+			cap.visible = true;
+		if(moustache != undefined)
+			moustache.visible = true;
 		isPainted = true;
 	}
 }
 
 function updateSceneObject(eyedistance, updatedpoints, name){
 	let object = scene.getObjectByName(name);
-	bbox = bbox.setFromObject(object);
-	scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
+	if (object != undefined){
+		bbox = bbox.setFromObject(object);
+		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
+	}
 }
 
 function scalateObjectToFace(eyesdistance, object, positions, name){
@@ -281,4 +297,12 @@ function detect(type) {
         canvases.running = true;
         startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
     }
+}
+
+function onWindowsResize(){
+
+	camera.aspect = container.clientWidth / container.clientHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(container.clientWidth, container.clientHeight);
+	//console.log('Resize!' + container.clientWidth + ' '  + container.clientHeight);
 }

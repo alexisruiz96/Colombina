@@ -19,7 +19,7 @@
 	<script src="js/OBJLoader.js"></script>
 	<script src="js/LoaderMesh.js"></script>
 	<script src="js/Calculator.js"></script>
-
+	<script src="js/main.js"></script>
 </head>
 <body>
   <header>
@@ -57,29 +57,29 @@
     </div>
     <div id="objectsVar">
       <div class="btn-group-vertical">
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="glasses" class="btn btn-light sceneObjects">
           <i class="fas fa-fw fa-glasses"></i>
         </button>
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="cap" class="btn btn-light sceneObjects">
           <i class="fas fa-fw fa-graduation-cap"></i>
         </button>
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="" class="btn btn-light sceneObjects">
           <i class="fas fa-fw fa-user-md"></i>
         </button>
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="" class="btn btn-light sceneObjects">
           <i class="fas fa-fw fa-bug"></i>
         </button>
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="" class="btn btn-light sceneObjects">
           <i class="fas fa-fw fa-crown"></i>
         </button>
-        <button type="button" class="btn btn-light sceneObjects">
+        <button type="button" id="moustache" class="btn btn-light sceneObjects">
           <i class="fab fa-fw fa-jenkins"></i>
         </button>
       </div>
     </div>
     <div class="container-fluid">
       <div class="row justify-content-center">
-        <div class="col-12 col-md-10" id="canvasWeb">
+        <div class="col-12 col-md-10" id="canvasWeb" style="width:640px; max-width:100%; height: auto;">
           <img id="imgBg" style="display: none;"/>
         </div>
       </div>
@@ -97,6 +97,5 @@
       <a href="#" class="setBg active" data-img="none">REMOVE</a>
     </div>
   </footer>
-  <script src="js/testmain.js"></script>
 </body>
 </html>
