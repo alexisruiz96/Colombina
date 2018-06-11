@@ -12,24 +12,28 @@ function faceDetect(imageData) {
 
 	let facialPointsArray = [];
 
-	if (ptr == undefined) {
-		initMemory(imageData);
-	}
 
-	//let ptr= Module._malloc(imageData.width * imageData.height * 4);
+	if (ptr == undefined) {
+		try{
+			initMemory(imageData);
+			console.log("Module object loaded.")
+		}
+		catch(e){
+			console.log("Module object loading...")
+			postMessage({ features: facialPointsArray });
+			return;
+		}
+	}
 
 	Module.HEAPU8.set(imageData.data,ptr);
 	let facialPoints = cvbridge.processFrame(ptr);
-  //cvbridge.delete();
 
-  for (let i = 0; i < facialPoints.size(); i++) {
-    facialPointsArray.push({
-      x: facialPoints.get(i)[0],
-      y: facialPoints.get(i)[1]
-    });
-  }
-
-  //Module._free(ptr);
+	for (let i = 0; i < facialPoints.size(); i++) {
+	  facialPointsArray.push({
+	    x: facialPoints.get(i)[0],
+	    y: facialPoints.get(i)[1]
+	  });
+	}
 
 	postMessage({ features: facialPointsArray });
 }
@@ -45,4 +49,5 @@ self.onmessage = function (e) {
 self.onerror = function (e) {
 	console.log(e);
 }
+
 console.log('done loading worker')

@@ -9,9 +9,7 @@ const objType = 'faceDetect';
 // custom global variables
 let videoImage, videoImageContext, videoTexture, facialPoints, cap, bbox,
 centerEyePoints, calculations, loadermesh, isPainted,selectedObject;
-let ratioPixels = [];
-let infoObjects = [];
-let sceneObjects = [];
+let ratioPixels = infoObjects = sceneObjects =  [];
 const MAX_POINTS = 68;
 let vectorSize = 3;
 let capPoint = 28;
@@ -35,15 +33,6 @@ window.URL = window.URL || window.webkitURL;
 
 let camvideo = document.getElementById('monitor');
 
-//Necesario abstraer la parte THREEJS a una capa inferior
-startEnvironment();
-
-function startEnvironment(){
-	config();
-	init();
-	update();
-}
-
 function config(){
 	if (!navigator.getUserMedia)
 	{
@@ -57,7 +46,7 @@ function config(){
 function gotStream(stream)
 {
 	if (window.URL)
-	{   //camvideo.src = window.URL.createObjectURL(stream);
+	{  
       camvideo.srcObject = stream;
   }
 	else // Opera
@@ -77,34 +66,34 @@ function noStream(e)
 	document.getElementById('errorMessage').textContent = msg;
 }
 
-function init()
-{
-	// SCENE
-	scene = new THREE.Scene();
-	scene.sceneObjects = [];
-	loadermesh = new LoaderMesh();
-	isPainted = false;
-	container = document.getElementById( 'canvasWeb' );
+//Necesario abstraer la parte THREEJS a una capa inferior
+startEnvironment();
 
-	// CAMERA
+function startEnvironment(){
+	config();
+	init();
+	update();
+}
+
+
+
+function createCamera(){
+
 	const SCREEN_WIDTH = container.clientWidth, SCREEN_HEIGHT = container.clientHeight;
 	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 1000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-	camera.position.set(0,0,150);
+	camera.position.set(0,0,100);
 	camera.lookAt(0, 0, 0);
-
 	scene.add(camera);
 
-
-	// RENDERER
+}
+function createRenderer(){
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
 	renderer.setSize(container.clientWidth, container.clientHeight);
 	container.appendChild( renderer.domElement );
+}
 
-	//LISTENERS
-	window.addEventListener('resize', onWindowsResize, false);
-
-	// VIDEO
+function configureVideoVariables(){
 	video = document.getElementById( 'monitor' );
 	videoImage = document.getElementById( 'videoImage' );
 	videoImageContext = videoImage.getContext( '2d' );
@@ -113,76 +102,111 @@ function init()
 	videoTexture = new THREE.Texture( videoImage );
 	videoTexture.minFilter = THREE.LinearFilter;
 	videoTexture.magFilter = THREE.LinearFilter;
+}
 
-	//CAMERA ON PLANE AS A TEXTURE
+function createwWebcamPlane(){
 	let movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true } );
 	let movieGeometry = new THREE.PlaneGeometry( 80, 80, 1, 1 );
 	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 	movieScreen.name = "movieScreen";
 	movieScreen.position.set(0,0,0);
-	scene.add(movieScreen);
 
 	//define ratio of pixels from video to movieScreen
 	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
 	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
 
-	// soft white light
+	scene.add(movieScreen);
+}
+
+function createAmbientLight(){
 	let light = new THREE.AmbientLight( 0x404040 );
 	scene.add( light );
+}
 
-	//FACIAL POINTS
-	let geometry = new THREE.BufferGeometry();
-	let positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-	let material = new THREE.PointsMaterial( { color: 0xff0000 } );
-  facialPoints = new THREE.Points(geometry,material);
-	facialPoints.position.set(0,0,0);
-	facialPoints.name = "facialPoints";
-	scene.add( facialPoints );
-
-	//EYES CENTER
-	let geometryCenters = new THREE.BufferGeometry();
-	let max_test = 2;
-	let positionsCenters = new Float32Array( max_test * 3 ); // 3 vertices per point
-	geometryCenters.addAttribute( 'position', new THREE.BufferAttribute( positionsCenters, 3 ) );
-	let materialCenters = new THREE.PointsMaterial( { color: 0x00ff00 } );
-  centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
-	centerEyePoints.position.set(0,0,0);
-	centerEyePoints.name = "centerEyePoints";
-	scene.add( centerEyePoints );
-
-	//AMBIENT LIGHT
+function createSecondAmbientLight(){
 	ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 	scene.add(ambientLight);
+}
 
-	//SIMPLE LIGHT
+function createSimpleLight(){
 	light = new THREE.PointLight(0xffffff, 0.8, 18);
 	light.position.set(-3,6,-3);
 	light.castShadow = true;
 	light.shadow.camera.near = 0.1;
 	light.shadow.camera.far = 25;
 	scene.add(light);
-	
-	//LOADING AVAILABLE OBJECTS
+}
+function createFacialPoints(){
+	let geometry = new THREE.BufferGeometry();
+	let positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+	let material = new THREE.PointsMaterial( { color: 0xff0000, size: 2 } );
+  	facialPoints = new THREE.Points(geometry,material);
+	facialPoints.position.set(0,0,0);
+	facialPoints.name = "facialPoints";
+	scene.add( facialPoints );
+}
+
+function createCenterEyePoints(){
+	let geometryCenters = new THREE.BufferGeometry();
+	let max_test = 2;
+	let positionsCenters = new Float32Array( max_test * 3 ); // 3 vertices per point
+	geometryCenters.addAttribute( 'position', new THREE.BufferAttribute( positionsCenters, 3 ) );
+	let materialCenters = new THREE.PointsMaterial( { color: 0x00ff00 } );
+  	centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
+	centerEyePoints.position.set(0,0,0);
+	centerEyePoints.name = "centerEyePoints";
+	scene.add( centerEyePoints );
+}
+
+function addSceneObjects(){
+
 	//loadInfo(offset, name, facepoint, pathmtl, pathobj)
-	//CAP
 	let info = loadermesh.loadInfo(55, "cap", capPoint, "models/cap/objCap.mtl", "models/cap/objCap.obj");
 	loadermesh.loadMeshWithMaterial(info);
-	//MOUSTACHE
+	//models/cap/objCap.mtl
+
 	info = loadermesh.loadInfo(0, "moustache", lipsPoint, "models/moustache/Mustache.mtl", "models/moustache/Mustache.obj");
 	loadermesh.loadMeshWithMaterial(info);
+}
 
-	// BOUNDING BOX
+function init()
+{
+	scene = new THREE.Scene();
+	scene.sceneObjects = [];
+	loadermesh = new LoaderMesh();
+	isPainted = false;
+	container = document.getElementById( 'canvasWeb' );
+
+	createCamera();
+	createRenderer();
+	configureVideoVariables()
+	createwWebcamPlane();
+	window.addEventListener('resize', onWindowsResize, false);
+	createAmbientLight();
+	createFacialPoints();
+	createCenterEyePoints();
+	createSecondAmbientLight();
+	createSimpleLight();
+	addSceneObjects();
+
 	bbox = new THREE.Box3();
-
-	//CLASS OF CALCULATIONS
 	calculations = new Calculator(scene.children);
 	startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 }
 
+function startWorker(imageData, command, type) {
+  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
+  let message = {
+      cmd: command,
+      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/canvases.scale), Math.round(imageData.height/canvases.scale))
+  };
+  asmWorker.postMessage(message);
+}
+
 function update()
 {
-  requestAnimationFrame( update );
+	requestAnimationFrame( update );
 	calculations.scene = scene.children;
 	facialPoints.geometry.attributes.position.needsUpdate = true;
 	centerEyePoints.geometry.attributes.position.needsUpdate = true;
@@ -210,7 +234,6 @@ asmWorker.onmessage = function (e) {
         }
     }
     else {
-			//debugger
 			let facepointslength = e.data.features.length
 			hideShowPoints(facepointslength);
 			if(facepointslength){
@@ -225,6 +248,38 @@ asmWorker.onmessage = function (e) {
 
     }
 }
+
+function detect(type) {
+    if (!canvases.running) {
+        canvases.running = true;
+        startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
+    }
+}
+
+function updateSceneObject(eyedistance, updatedpoints, name){
+	let object = scene.getObjectByName(name);
+	if (object != undefined){
+		bbox = bbox.setFromObject(object);
+		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
+	}
+}
+
+function scalateObjectToFace(eyesdistance, object, positions, name){
+
+	if(!eyesdistance)
+		return;
+	let bboxdistancex = object.max.x - object.min.x;
+	let scalatecoeficient = eyesdistance / bboxdistancex ;
+	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
+	selectedObject = scene.getObjectByName(name);
+	x = positions[selectedObject.facialpoint * vectorSize]-1;
+	y = positions[selectedObject.facialpoint * vectorSize + 1] + (selectedObject.offset * scalatecoeficient)/2;
+
+	selectedObject.position.set(x,y,0);
+	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
+
+}
+
 function hideShowPoints(facialPointsLength){
 	let cap = scene.getObjectByName("cap");
 	let moustache = scene.getObjectByName("moustache");
@@ -249,54 +304,11 @@ function hideShowPoints(facialPointsLength){
 	}
 }
 
-function updateSceneObject(eyedistance, updatedpoints, name){
-	let object = scene.getObjectByName(name);
-	if (object != undefined){
-		bbox = bbox.setFromObject(object);
-		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
-	}
-}
-
-function scalateObjectToFace(eyesdistance, object, positions, name){
-
-	if(!eyesdistance)
-		return;
-	let bboxdistancex = object.max.x - object.min.x;
-	let scalatecoeficient = eyesdistance / bboxdistancex ;
-	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
-	//debugger
-	selectedObject = scene.getObjectByName(name);
-	x = positions[selectedObject.facialpoint * vectorSize];
-	y = positions[selectedObject.facialpoint * vectorSize + 1] + (selectedObject.offset * scalatecoeficient)/2;
-
-	//calcular bbox cap
-	selectedObject.position.set(x,y,0);
-	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
-
-}
-
-function startWorker(imageData, command, type) {
-	//update();
-  canvases.dummy.context.drawImage(monitor, 0, 0, imageData.width, imageData.height, 0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale));
-  let message = {
-      cmd: command,
-      img: canvases.dummy.context.getImageData(0, 0, Math.round(imageData.width/ canvases.scale), Math.round(imageData.height/canvases.scale))
-  };
-  asmWorker.postMessage(message);
-}
-
 function rotateObj(anglex,angley,anglez){
   let cap = scene.getObjectByName("cap");
   cap.rotateX(anglex);
   cap.rotateY(angley);
   cap.rotateZ(anglez);
-}
-
-function detect(type) {
-    if (!canvases.running) {
-        canvases.running = true;
-        startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
-    }
 }
 
 function onWindowsResize(){
