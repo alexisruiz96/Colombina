@@ -27,15 +27,26 @@ function faceDetect(imageData) {
 
 	Module.HEAPU8.set(imageData.data,ptr);
 	let facialPoints = cvbridge.processFrame(ptr);
-
-	for (let i = 0; i < facialPoints.size(); i++) {
+	//console.log(facialPoints);
+	for (let i = 0; i < facialPoints[3].size(); i++) {
 	  facialPointsArray.push({
-	    x: facialPoints.get(i)[0],
-	    y: facialPoints.get(i)[1]
+	    x: facialPoints[3].get(i)[0],
+	    y: facialPoints[3].get(i)[1]
 	  });
 	}
 
-	postMessage({ features: facialPointsArray });
+	//row, pitch and yaw first 3 positions
+	let anglesFace = [];
+	for (let i = 0; i < 3; i++){
+		let angle = facialPoints[i] * (3.1416/180)
+		anglesFace.push(angle);
+	}
+
+	//let R = facialPoints[0];
+	//let P = facialPoints[1];
+	//let Y = facialPoints[2];
+
+	postMessage({ features: facialPointsArray, angles: anglesFace });
 }
 
 self.onmessage = function (e) {

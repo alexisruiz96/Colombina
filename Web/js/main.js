@@ -46,7 +46,7 @@ function config(){
 function gotStream(stream)
 {
 	if (window.URL)
-	{  
+	{
       camvideo.srcObject = stream;
   }
 	else // Opera
@@ -243,7 +243,11 @@ asmWorker.onmessage = function (e) {
 				updateSceneObject(eyedistance,updatedpoints, "cap");
 				updateSceneObject(eyedistance,updatedpoints, "moustache");
 			}
-			//rotateObj(1,0,0);
+			//debugger
+			if(e.data.angles){
+				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2]);
+				//console.log("Row: " + e.data.angles[0] + " " + "Pitch: " + e.data.angles[1] + " " + "Yaw: " + e.data.angles[2] + " ");
+			}
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
 
     }
@@ -261,6 +265,7 @@ function updateSceneObject(eyedistance, updatedpoints, name){
 	if (object != undefined){
 		bbox = bbox.setFromObject(object);
 		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
+		//rotateObj(1,0,0);
 	}
 }
 
@@ -305,7 +310,12 @@ function hideShowPoints(facialPointsLength){
 }
 
 function rotateObj(anglex,angley,anglez){
-  let cap = scene.getObjectByName("cap");
+	if(scene.getObjectByName("moustache")==undefined)
+		return;
+  let cap = scene.getObjectByName("moustache");
+	anglex = anglex - cap.rotation.x;
+	angley = angley - cap.rotation.y;
+	anglez = anglez - cap.rotation.z;
   cap.rotateX(anglex);
   cap.rotateY(angley);
   cap.rotateZ(anglez);
