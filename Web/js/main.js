@@ -75,18 +75,15 @@ function startEnvironment(){
 	update();
 }
 
-
-
 function createCamera(){
-
 	const SCREEN_WIDTH = container.clientWidth, SCREEN_HEIGHT = container.clientHeight;
 	const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 1000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	camera.position.set(0,0,100);
 	camera.lookAt(0, 0, 0);
 	scene.add(camera);
-
 }
+
 function createRenderer(){
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
 	renderer.setSize(container.clientWidth, container.clientHeight);
@@ -110,7 +107,6 @@ function createwWebcamPlane(){
 	let movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 	movieScreen.name = "movieScreen";
 	movieScreen.position.set(0,0,0);
-
 	//define ratio of pixels from video to movieScreen
 	ratioPixels.x = videoImage.width / movieScreen.geometry.parameters.width;
 	ratioPixels.y = videoImage.height / movieScreen.geometry.parameters.height;
@@ -141,7 +137,7 @@ function createFacialPoints(){
 	let positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
 	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 	let material = new THREE.PointsMaterial( { color: 0xff0000, size: 2 } );
-  	facialPoints = new THREE.Points(geometry,material);
+  facialPoints = new THREE.Points(geometry,material);
 	facialPoints.position.set(0,0,0);
 	facialPoints.name = "facialPoints";
 	scene.add( facialPoints );
@@ -153,7 +149,7 @@ function createCenterEyePoints(){
 	let positionsCenters = new Float32Array( max_test * 3 ); // 3 vertices per point
 	geometryCenters.addAttribute( 'position', new THREE.BufferAttribute( positionsCenters, 3 ) );
 	let materialCenters = new THREE.PointsMaterial( { color: 0x00ff00 } );
-  	centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
+  centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
 	centerEyePoints.position.set(0,0,0);
 	centerEyePoints.name = "centerEyePoints";
 	scene.add( centerEyePoints );
@@ -176,7 +172,7 @@ function init()
 	scene.sceneObjects = [];
 	loadermesh = new LoaderMesh();
 	isPainted = false;
-	container = document.getElementById( 'canvasWeb' );
+	container = document.getElementById('canvasWeb');
 
 	createCamera();
 	createRenderer();
@@ -240,12 +236,13 @@ asmWorker.onmessage = function (e) {
 				let updatedpoints = calculations.updateFacialPoints(e, "facialPoints");
 				let eyedistance = calculations.calculateEyesDistance(updatedpoints, facepointslength);
 				//recorrer objetos anadidos y actualizarlos
-				updateSceneObject(eyedistance,updatedpoints, "cap");
-				updateSceneObject(eyedistance,updatedpoints, "moustache");
+				updateSceneObject(eyedistance,updatedpoints, "cap", e.data.scaleValue);
+				updateSceneObject(eyedistance,updatedpoints, "moustache", e.data.scaleValue);
 			}
 			//debugger
 			if(e.data.angles){
-				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2]);
+				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2],"cap");
+				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2],"moustache");
 				//console.log("Row: " + e.data.angles[0] + " " + "Pitch: " + e.data.angles[1] + " " + "Yaw: " + e.data.angles[2] + " ");
 			}
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
@@ -260,65 +257,65 @@ function detect(type) {
     }
 }
 
-function updateSceneObject(eyedistance, updatedpoints, name){
+function updateSceneObject(eyedistance, updatedpoints, name, scaleValue){
 	let object = scene.getObjectByName(name);
 	if (object != undefined){
 		bbox = bbox.setFromObject(object);
-		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name);
-		//rotateObj(1,0,0);
+		scalateObjectToFace(eyedistance, bbox, updatedpoints, object.name, scaleValue);
 	}
 }
 
-function scalateObjectToFace(eyesdistance, object, positions, name){
+function scalateObjectToFace(eyesdistance, object, positions, name, scaleValue){
 
 	if(!eyesdistance)
 		return;
-	let bboxdistancex = object.max.x - object.min.x;
-	let scalatecoeficient = eyesdistance / bboxdistancex ;
-	let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
+	// let bboxdistancex = object.max.x - object.min.x;
+	// let scalatecoeficient = eyesdistance / bboxdistancex ;
+	// let scalevalue = (bboxdistancex * scalatecoeficient) / 2;
+	scaleValue = scaleValue.toFixed(2)*6;
 	selectedObject = scene.getObjectByName(name);
 	x = positions[selectedObject.facialpoint * vectorSize]-1;
-	y = positions[selectedObject.facialpoint * vectorSize + 1] + (selectedObject.offset * scalatecoeficient)/2;
+	y = positions[selectedObject.facialpoint * vectorSize + 1] + (selectedObject.offset * scaleValue)/16;
 
 	selectedObject.position.set(x,y,0);
-	selectedObject.scale.set(scalevalue.toFixed(2), scalevalue.toFixed(2), scalevalue.toFixed(2));
+	selectedObject.scale.set(scaleValue, scaleValue, scaleValue);
 
 }
 
 function hideShowPoints(facialPointsLength){
-	let cap = scene.getObjectByName("cap");
-	let moustache = scene.getObjectByName("moustache");
 	if(facialPointsLength === 0 && isPainted != false){
 		scene.remove(facialPoints);
 		scene.remove(centerEyePoints);
-		//esta parte desaparecera, se añade o se quita de la escena el objeto
-		if(cap != undefined)
-			cap.visible = false;
-		if(moustache != undefined)
-			moustache.visible = false;
-		isPainted = false;
+		hideObjects(false);
 	}
 	else if (facialPointsLength != 0 && isPainted != true) {
 		scene.add(facialPoints);
 		scene.add(centerEyePoints);
-		if(cap != undefined)
-			cap.visible = true;
-		if(moustache != undefined)
-			moustache.visible = true;
-		isPainted = true;
+		hideObjects(true);
 	}
 }
 
-function rotateObj(anglex,angley,anglez){
-	if(scene.getObjectByName("moustache")==undefined)
+function hideObjects(hideBool){
+	for (let i = 0; i < scene.sceneObjects.length; i++) {
+		let object = scene.getObjectByName(scene.sceneObjects[i].name);
+		if(object != undefined)
+			object.visible = hideBool;
+	}
+	isPainted = hideBool;
+}
+
+//e.data.angles[1],-e.data.angles[0],-e.data.angles[2]
+
+function rotateObj(anglex,angley,anglez, name){
+	if(scene.getObjectByName(name)==undefined)
 		return;
-  let cap = scene.getObjectByName("moustache");
-	anglex = anglex - cap.rotation.x;
-	angley = angley - cap.rotation.y;
-	anglez = anglez - cap.rotation.z;
-  cap.rotateX(anglex);
-  cap.rotateY(angley);
-  cap.rotateZ(anglez);
+  let object = scene.getObjectByName(name);
+	anglex = anglex - object.rotation.x;
+	angley = angley - object.rotation.y;
+	anglez = anglez - object.rotation.z;
+  object.rotateX(anglex);
+  object.rotateY(angley);
+  object.rotateZ(anglez);
 }
 
 function onWindowsResize(){

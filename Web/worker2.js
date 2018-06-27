@@ -8,11 +8,20 @@ function initMemory(imageData) {
 
 }
 
+// FacialPointsInfo
+// struct jsObj {
+// 	float row;
+// 	float pitch;
+// 	float yaw;
+// 	vector<facialPoints>;
+// 	float scale;
+// };
+
 function faceDetect(imageData) {
 
 	let facialPointsArray = [];
 
-
+	//usa un callback para cuando se cargue
 	if (ptr == undefined) {
 		try{
 			initMemory(imageData);
@@ -26,27 +35,25 @@ function faceDetect(imageData) {
 	}
 
 	Module.HEAPU8.set(imageData.data,ptr);
-	let facialPoints = cvbridge.processFrame(ptr);
+	let facialPointsInfo = cvbridge.processFrame(ptr);
 	//console.log(facialPoints);
-	for (let i = 0; i < facialPoints[3].size(); i++) {
+	for (let i = 0; i < facialPointsInfo[3].size(); i++) {
 	  facialPointsArray.push({
-	    x: facialPoints[3].get(i)[0],
-	    y: facialPoints[3].get(i)[1]
+	    x: facialPointsInfo[3].get(i)[0],
+	    y: facialPointsInfo[3].get(i)[1]
 	  });
 	}
 
 	//row, pitch and yaw first 3 positions
 	let anglesFace = [];
 	for (let i = 0; i < 3; i++){
-		let angle = facialPoints[i] * (3.1416/180)
+		let angle = facialPointsInfo[i] * (3.1416/180)
 		anglesFace.push(angle);
 	}
 
-	//let R = facialPoints[0];
-	//let P = facialPoints[1];
-	//let Y = facialPoints[2];
+	let scale = facialPointsInfo[4];
 
-	postMessage({ features: facialPointsArray, angles: anglesFace });
+	postMessage({ features: facialPointsArray, angles: anglesFace, scaleValue: scale});
 }
 
 self.onmessage = function (e) {
