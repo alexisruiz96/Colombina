@@ -1,5 +1,8 @@
 let ptr;
 let cvbridge;
+let anglesMax = 3;
+let vectorPointsPos = 3;
+let scaleFacePos = 4;
 
 function initMemory(imageData) {
 
@@ -21,13 +24,13 @@ function faceDetect(imageData) {
 
 	let facialPointsArray = [];
 
-	//usa un callback para cuando se cargue
 	if (ptr == undefined) {
 		try{
 			initMemory(imageData);
 			console.log("Module object loaded.")
 		}
 		catch(e){
+			console.log(e);
 			console.log("Module object loading...")
 			postMessage({ features: facialPointsArray });
 			return;
@@ -36,22 +39,21 @@ function faceDetect(imageData) {
 
 	Module.HEAPU8.set(imageData.data,ptr);
 	let facialPointsInfo = cvbridge.processFrame(ptr);
-	//console.log(facialPoints);
-	for (let i = 0; i < facialPointsInfo[3].size(); i++) {
+	for (let i = 0; i < facialPointsInfo[vectorPointsPos].size(); i++) {
 	  facialPointsArray.push({
-	    x: facialPointsInfo[3].get(i)[0],
-	    y: facialPointsInfo[3].get(i)[1]
+	    x: facialPointsInfo[vectorPointsPos].get(i)[0],
+	    y: facialPointsInfo[vectorPointsPos].get(i)[1]
 	  });
 	}
 
 	//row, pitch and yaw first 3 positions
 	let anglesFace = [];
-	for (let i = 0; i < 3; i++){
-		let angle = facialPointsInfo[i] * (3.1416/180)
+	for (let i = 0; i < anglesMax; i++){
+		let angle = facialPointsInfo[i] * (Math.PI/180)
 		anglesFace.push(angle);
 	}
 
-	let scale = facialPointsInfo[4];
+	let scale = facialPointsInfo[scaleFacePos];
 
 	postMessage({ features: facialPointsArray, angles: anglesFace, scaleValue: scale});
 }
