@@ -67,10 +67,10 @@ class LoaderMesh {
                 child.material = material;
                 child.receiveShadow = true;
                 child.castShadow = true;
-                child.position.y -= 10;
+                //child.position.y -= 10;
             }
         } );
-    
+
 
         scene.sceneObjects.push(object);
     });

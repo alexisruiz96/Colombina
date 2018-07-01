@@ -158,9 +158,12 @@ function createCenterEyePoints(){
 function addSceneObjects(){
 
 	//loadInfo(offset, name, facepoint, pathmtl, pathobj)
-	let info = loadermesh.loadInfo(55, "cap", capPoint, "models/cap/objCap.mtl", "models/cap/objCap.obj");
-	loadermesh.loadMeshWithMaterial(info);
+	let info = loadermesh.loadInfo(55, "cap", capPoint, "models/cap/cap.jpg", "models/cap/cap.obj");
+	loadermesh.loadModel(info);
 	//models/cap/objCap.mtl
+
+	info = loadermesh.loadInfo(0, "glasses", capPoint, "models/glasses/glasses.jpg", "models/glasses/glasses.obj");
+	loadermesh.loadModel(info);
 
 	info = loadermesh.loadInfo(0, "moustache", lipsPoint, "models/moustache/Mustache.mtl", "models/moustache/Mustache.obj");
 	loadermesh.loadMeshWithMaterial(info);
@@ -238,11 +241,13 @@ asmWorker.onmessage = function (e) {
 				//recorrer objetos anadidos y actualizarlos
 				updateSceneObject(eyedistance,updatedpoints, "cap", e.data.scaleValue);
 				updateSceneObject(eyedistance,updatedpoints, "moustache", e.data.scaleValue);
+				updateSceneObject(eyedistance,updatedpoints, "glasses", e.data.scaleValue);
 			}
 			//debugger
 			if(e.data.angles){
 				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2],"cap");
 				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2],"moustache");
+				rotateObj(e.data.angles[1],-e.data.angles[0],-e.data.angles[2],"glasses");
 				//console.log("Row: " + e.data.angles[0] + " " + "Pitch: " + e.data.angles[1] + " " + "Yaw: " + e.data.angles[2] + " ");
 			}
       startWorker(videoImageContext.getImageData(0, 0, videoImage.width, videoImage.height), objType, 'asm');
