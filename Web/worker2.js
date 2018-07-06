@@ -1,8 +1,8 @@
-let ptr;
-let cvbridge;
-let anglesMax = 3;
-let vectorPointsPos = 3;
-let scaleFacePos = 4;
+var ptr;
+var cvbridge;
+var anglesMax = 3;
+var vectorPointsPos = 3;
+var scaleFacePos = 4;
 
 function initMemory(imageData) {
 
@@ -24,17 +24,9 @@ function faceDetect(imageData) {
 
 	let facialPointsArray = [];
 
-	if (ptr == undefined) {
-		try{
-			initMemory(imageData);
-			console.log("Module object loaded.")
-		}
-		catch(e){
-			console.log(e);
-			console.log("Module object loading...")
-			postMessage({ features: facialPointsArray });
-			return;
-		}
+	if (ptr === undefined) {
+		initMemory(imageData);
+		console.log("Module object loaded.")
 	}
 
 	Module.HEAPU8.set(imageData.data,ptr);
@@ -63,11 +55,15 @@ self.onmessage = function (e) {
 		case 'faceDetect':
 			faceDetect(e.data.img);
 			break;
+		case 'exit':
+			if (cvbridge !== undefined)
+				cvbridge.delete();
+		    if (ptr !== undefined)
+		    	Module._free(ptr);
+		    break;
 	}
 }
 
 self.onerror = function (e) {
 	console.log(e);
 }
-
-console.log('done loading worker')

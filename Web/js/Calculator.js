@@ -24,8 +24,8 @@ class Calculator {
 		const z = 3;
 		for (let i=0; i< facialpoints.data.features.length; i++) {
 			let rect = facialpoints.data.features[i];
-			positions[ index ++ ] = (((rect.x-2) * canvases.scale)-videoImage.width/2) / ratioPixels.x;
-			positions[ index ++ ] = -(((rect.y-2) * canvases.scale)-videoImage.height/2) / ratioPixels.y;
+			positions[ index ++ ] = (((rect.x-2) * app.scale)-app.videoImage.width/2) / 	app.webgl.ratioPixels.x;
+			positions[ index ++ ] = -(((rect.y-2) * app.scale)-app.videoImage.height/2) / 	app.webgl.ratioPixels.y;
 			positions[ index ++ ] = z;
 	  }
 
@@ -58,7 +58,7 @@ class Calculator {
 
 
 		for( let i=0; i < eyePoints.sizeeye; i++){
-			pos = (indexEye1 - 1) * vectorSize;
+			pos = (indexEye1 - 1) * 	app.webgl.vectorSize;
 			sumPoints.xeye1 = sumPoints.xeye1 + positions[pos];
 			sumPoints.yeye1 = sumPoints.yeye1 + positions[pos + 1];
 			//console.log("Eye 1 point " +  indexEye1  + ": " +  positions[pos] + "," + positions[pos + 1]);
@@ -67,7 +67,7 @@ class Calculator {
 
 
 		for( let i=0; i < eyePoints.sizeeye; i++){
-			pos = (indexEye2 - 1) * vectorSize;
+			pos = (indexEye2 - 1) * 	app.webgl.vectorSize;
 			sumPoints.xeye2 = sumPoints.xeye2 + positions[pos];
 			sumPoints.yeye2 = sumPoints.yeye2 + positions[pos + 1];
 			//console.log("Eye 2 point " +  indexEye2  + ": " +  positions[pos] + "," + positions[pos + 1]);

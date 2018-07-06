@@ -18,20 +18,20 @@ jQuery( document ).ready(function($) {
       $this.removeClass('active');
       // quitar objecto de escena
       var name = e.target.id;
-      scene.remove(scene.getObjectByName(name));
+      app.webgl.scene.remove(app.webgl.scene.getObjectByName(name));
     } else {
       $this.addClass('active');
       // poner objecto de escena
       var name = e.target.id;
       var objClickedMesh = getObject(name);
-      scene.add(objClickedMesh);
+      app.webgl.scene.add(objClickedMesh);
     }
   });
 
   function getObject(name){
-    for (let i = 0; i < scene.sceneObjects.length; i++) {
-      if (scene.sceneObjects[i].name == name) {
-        return scene.sceneObjects[i];
+    for (let i = 0; i < 	app.webgl.scene.sceneObjects.length; i++) {
+      if (	app.webgl.scene.sceneObjects[i].name == name) {
+        return 	app.webgl.scene.sceneObjects[i];
       }
     }
   }

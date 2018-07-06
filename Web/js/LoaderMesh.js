@@ -25,7 +25,7 @@ class LoaderMesh {
           }
         });
 
-        scene.sceneObjects.push(mesh);
+        app.webgl.scene.sceneObjects.push(mesh);
       });
 
     });
@@ -43,13 +43,13 @@ class LoaderMesh {
         texture.needsUpdate = true;
     } );
 
-    /*var normal_texture = new THREE.Texture();
-    loader.load( 'assets/lee_normal_tangent.jpg', function ( image ) {
+    // var normal_texture = new THREE.Texture();
+    // loader.load( 'assets/lee_normal_tangent.jpg', function ( image ) {
+    //
+    //     normal_texture.image = image;
+    //     normal_texture.needsUpdate = true;
+    // } );
 
-        normal_texture.image = image;
-        normal_texture.needsUpdate = true;
-    } );
-  */
     var material = new THREE.MeshPhongMaterial( {
         specular: 0x222222,
         shininess: 35,
@@ -67,12 +67,9 @@ class LoaderMesh {
                 child.material = material;
                 child.receiveShadow = true;
                 child.castShadow = true;
-                //child.position.y -= 10;
             }
         } );
-
-
-        scene.sceneObjects.push(object);
+        app.webgl.scene.sceneObjects.push(object);
     });
 
   }
