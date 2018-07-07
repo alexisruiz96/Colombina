@@ -59,7 +59,6 @@ function init()
 	createRenderer();
 	configureVideoVariables()
 	createwWebcamPlane();
-	window.addEventListener('resize', onWindowsResize, false);
 	createAmbientLight();
 	createFacialPoints();
 	createCenterEyePoints();
@@ -83,7 +82,9 @@ function createCamera(){
 function createRenderer(){
 	app.webgl.renderer = new THREE.WebGLRenderer( {antialias:true} );
 	app.webgl.renderer.setSize(app.container.clientWidth, app.container.clientHeight);
-	app.container.appendChild( app.webgl.renderer.domElement );
+	let canvasWebGl = app.webgl.renderer.domElement;
+	canvasWebGl.style = "max-width: 100%; height: 100%;";
+	app.container.appendChild(canvasWebGl);
 }
 
 function configureVideoVariables(){
@@ -287,13 +288,6 @@ function rotateObj(anglex,angley,anglez, name){
   object.rotateZ(anglez);
 }
 
-function onWindowsResize(){
-
-	app.webgl.camera.aspect = app.container.clientWidth / app.container.clientHeight;
-	app.webgl.camera.updateProjectionMatrix();
-	app.webgl.renderer.setSize(app.container.clientWidth, app.container.clientHeight);
-	//console.log('Resize!' + container.clientWidth + ' '  + container.clientHeight);
-}
 
 window.onerror = function (event) {
     console.log(event)
