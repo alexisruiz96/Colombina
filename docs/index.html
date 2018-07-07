@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Colombina project">
+  <meta name="author" content="Alexis">
+  <title>Colombina</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/funct.js"></script>
+  <script src="js/three.js"></script>
+	<script src="js/MTLLoader.js"></script>
+	<script src="js/OBJLoader.js"></script>
+	<script src="js/LoaderMesh.js"></script>
+	<script src="js/Calculator.js"></script>
+	<script src="js/main.js" async></script>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">
+        <i class="fab fa-fw fa-wolf-pack-battalion"></i>
+        Colombina
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+        </ul>
+        <a href="https://github.com/alexisruiz96" target="_blank" class="navbar-text text-white">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </nav>
+  </header>
+  <div id="content">
+    <video id="monitor" style="display:none; float:left;" width="640px" height="480px" autoplay></video>
+		<canvas id="videoImage" style="display: none; float:left;" width="640px" height="480px"></canvas>
+		<canvas id="dummy" style="position:fixed; left:-1000px; display: none;"></canvas>
+    <div id="toggleVar">
+      <button type="button" class="btn btn-light shown" id="toggleObjectVar" data-toggle="tooltip" title="Click to show/hide all the scene objects">
+        <i class="fas fa-fw fa-angle-double-up"></i>
+      </button>
+    </div>
+    <div id="objectsVar">
+      <div class="btn-group-vertical">
+        <button type="button" id="glasses" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-glasses"></i>
+        </button>
+        <button type="button" id="cap" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-graduation-cap"></i>
+        </button>
+        <button type="button" id="" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-user-md"></i>
+        </button>
+        <button type="button" id="" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-bug"></i>
+        </button>
+        <button type="button" id="" class="btn btn-light sceneObjects">
+          <i class="fas fa-fw fa-crown"></i>
+        </button>
+        <button type="button" id="moustache" class="btn btn-light sceneObjects">
+          <i class="fab fa-fw fa-jenkins"></i>
+        </button>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-sm-8 col-xs-6" id="canvasWeb" style="width:640px; max-width:100%; height: auto;">
+          <img id="imgBg" style="display: none;"/>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="container">
+      <span class="text-muted mr-2">
+        <i class="far fa-fw fa-images"></i>
+        CHANGE BACKGROUNDS
+      </span>
+      <a href="#" class="setBg mr-2" data-img="bg1.png">KIDS</a>
+      <a href="#" class="setBg mr-2" data-img="bg2.png">PLANTS</a>
+      <a href="#" class="setBg mr-2" data-img="bg3.png">JUNGLE</a>
+      <a href="#" class="setBg active" data-img="none">REMOVE</a>
+    </div>
+  </footer>
+</body>
+</html>
