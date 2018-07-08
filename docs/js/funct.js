@@ -14,8 +14,11 @@ jQuery( document ).ready(function($) {
   $('body').on('click', '#objectsVar button.sceneObjects', function(e){
     e.preventDefault();
     var $this = $(this);
-    if ($this.hasClass('active')) {
-      $this.removeClass('active');
+    if ($this.hasClass('active') || $this.parents('.active').length) {
+      if ($this.hasClass('active'))
+        $this.removeClass('active');
+      if ($this.parents('.active').length)
+        $this.parent('button').removeClass('active');
       // quitar objecto de escena
       var name = e.target.id;
       if(name=="facialPoints"){
@@ -24,7 +27,10 @@ jQuery( document ).ready(function($) {
       }
       app.webgl.scene.remove(app.webgl.scene.getObjectByName(name));
     } else {
-      $this.addClass('active');
+      if ($this.is('i'))
+        $this.parent('button').addClass('active');
+      if ($this.is('button'))
+        $this.addClass('active');
       var name = e.target.id;
       var objClickedMesh = getObject(name);
       app.webgl.scene.add(objClickedMesh);
