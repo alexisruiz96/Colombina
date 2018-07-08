@@ -94,6 +94,8 @@ function configureVideoVariables(){
 	app.videoImageContext.fillStyle = '#000000'; // background color if no video present
 	app.videoImageContext.fillRect( 0, 0, app.videoImage.width, app.videoImage.height );
 	app.webgl.videoTexture = new THREE.Texture( app.videoImage );
+	app.webgl.videoTexture.wrapS = THREE.RepeatWrapping;
+	app.webgl.videoTexture.repeat.x = -1;
 	app.webgl.videoTexture.minFilter = THREE.LinearFilter;
 	app.webgl.videoTexture.magFilter = THREE.LinearFilter;
 }
@@ -281,8 +283,8 @@ function rotateObj(anglex,angley,anglez, name){
 		return;
   let object = app.webgl.scene.getObjectByName(name);
 	anglex = anglex - object.rotation.x;
-	angley = angley - object.rotation.y;
-	anglez = anglez - object.rotation.z;
+	angley = -angley - object.rotation.y;
+	anglez = -anglez - object.rotation.z;
   object.rotateX(anglex);
   object.rotateY(angley);
   object.rotateZ(anglez);

@@ -24,7 +24,7 @@ class Calculator {
 		const z = 3;
 		for (let i=0; i< facialpoints.data.features.length; i++) {
 			let rect = facialpoints.data.features[i];
-			positions[ index ++ ] = (((rect.x-2) * app.scale)-app.videoImage.width/2) / 	app.webgl.ratioPixels.x;
+			positions[ index ++ ] = -(((rect.x-2) * app.scale)-app.videoImage.width/2) / 	app.webgl.ratioPixels.x;
 			positions[ index ++ ] = -(((rect.y-2) * app.scale)-app.videoImage.height/2) / 	app.webgl.ratioPixels.y;
 			positions[ index ++ ] = z;
 	  }
