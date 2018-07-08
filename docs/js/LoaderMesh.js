@@ -18,6 +18,7 @@ class LoaderMesh {
         mesh.name = info.name;
         mesh.offset = info.offset;
         mesh.facialpoint = info.facepoint;
+        mesh.scaleValue = info.scale;
         mesh.traverse(function(node){
           if( node instanceof THREE.Mesh ){
             node.castShadow = true;
@@ -62,6 +63,7 @@ class LoaderMesh {
         object.name = info.name;
         object.offset = info.offset;
         object.facialpoint = info.facepoint;
+        object.scaleValue = info.scale;
         object.traverse( function ( child ) {
             if ( child instanceof THREE.Mesh ) {
                 child.material = material;
@@ -73,13 +75,14 @@ class LoaderMesh {
     });
 
   }
-  loadInfo(offset, name, facepoint, pathmtl, pathobj){
+  loadInfo(offset, name, facepoint, pathmtl, pathobj, scale){
     let info = [];
     info.offset = offset;
     info.name = name;
     info.facepoint = facepoint;
     info.pathmtl = pathmtl;
     info.pathobj = pathobj;
+    info.scale = scale;
 
     return info;
   }

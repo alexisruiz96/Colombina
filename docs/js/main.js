@@ -90,6 +90,7 @@ function createRenderer(){
 function configureVideoVariables(){
 	app.video = document.getElementById( 'monitor' );
 	app.videoImage = document.getElementById( 'videoImage' );
+	app.videoImage.imageValueScale = app.videoImage.width/app.videoImage.height;
 	app.videoImageContext = app.videoImage.getContext( '2d' );
 	app.videoImageContext.fillStyle = '#000000'; // background color if no video present
 	app.videoImageContext.fillRect( 0, 0, app.videoImage.width, app.videoImage.height );
@@ -106,6 +107,7 @@ function createwWebcamPlane(){
 	app.webgl.movieScreen = new THREE.Mesh( app.webgl.movieGeometry, app.webgl.movieMaterial );
 	app.webgl.movieScreen.name = "movieScreen";
 	app.webgl.movieScreen.position.set(0,0,0);
+	app.webgl.movieScreen.movieScaleValue = app.webgl.movieScreen.geometry.parameters.width / app.webgl.movieScreen.geometry.parameters.height;
 	//define ratio of pixels from video to movieScreen
 	app.webgl.ratioPixels.x = app.videoImage.width / app.webgl.movieScreen.geometry.parameters.width;
 	app.webgl.ratioPixels.y = app.videoImage.height / app.webgl.movieScreen.geometry.parameters.height;
@@ -158,14 +160,14 @@ function createCenterEyePoints(){
 function addSceneObjects(){
 
 	//loadInfo(offset, name, facepoint, pathmtl, pathobj)
-	let info = app.webgl.loaderMesh.loadInfo(55, "cap", app.webgl.capPoint, "models/cap/cap.jpg", "models/cap/cap.obj");
+	let info = app.webgl.loaderMesh.loadInfo(2, "cap", app.webgl.capPoint, "models/cap/cap.jpg", "models/cap/cap.obj",8);
 	app.webgl.loaderMesh.loadModel(info);
 	//models/cap/objCap.mtl
 
-	info = app.webgl.loaderMesh.loadInfo(0, "glasses", app.webgl.capPoint, "models/glasses/glasses.jpg", "models/glasses/glasses.obj");
+	info = app.webgl.loaderMesh.loadInfo(0, "glasses", app.webgl.capPoint, "models/glasses/glasses.jpg", "models/glasses/glasses.obj", 4);
 	app.webgl.loaderMesh.loadModel(info);
 
-	info = app.webgl.loaderMesh.loadInfo(0, "moustache", app.webgl.lipsPoint, "models/moustache/Mustache.mtl", "models/moustache/Mustache.obj");
+	info = app.webgl.loaderMesh.loadInfo(0, "moustache", app.webgl.lipsPoint, "models/moustache/Mustache.mtl", "models/moustache/Mustache.obj", 8);
 	app.webgl.loaderMesh.loadMeshWithMaterial(info);
 }
 
@@ -244,13 +246,14 @@ function scalateObjectToFace(eyesdistance, object, positions, name, scaleValue){
 	// let app.bboxdistancex = object.max.x - object.min.x;
 	// let scalatecoeficient = eyesdistance / app.bboxdistancex ;
 	// let scalevalue = (app.bboxdistancex * scalatecoeficient) / 2;
-	scaleValue = scaleValue.toFixed(2)*6;
+	//scaleValue = scaleValue.toFixed(2)*6;
 	let selectedObject = app.webgl.scene.getObjectByName(name);
+	let scale = (scaleValue * app.webgl.movieScreen.movieScaleValue) / (app.videoImage.imageValueScale)*selectedObject.scaleValue;
 	x = positions[selectedObject.facialpoint * app.webgl.vectorSize]-1;
-	y = positions[selectedObject.facialpoint * app.webgl.vectorSize + 1] + (selectedObject.offset * scaleValue)/16;
+	y = positions[selectedObject.facialpoint * app.webgl.vectorSize + 1] + (selectedObject.offset * scale);
 
 	selectedObject.position.set(x,y,0);
-	selectedObject.scale.set(scaleValue, scaleValue, scaleValue);
+	selectedObject.scale.set(scale, scale, scale);
 
 }
 
