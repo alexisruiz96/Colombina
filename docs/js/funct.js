@@ -18,10 +18,13 @@ jQuery( document ).ready(function($) {
       $this.removeClass('active');
       // quitar objecto de escena
       var name = e.target.id;
+      if(name=="facialPoints"){
+        app.buttonActivated = false;
+        app.webgl.scene.remove(app.webgl.centerEyePoints)
+      }
       app.webgl.scene.remove(app.webgl.scene.getObjectByName(name));
     } else {
       $this.addClass('active');
-      // poner objecto de escena
       var name = e.target.id;
       var objClickedMesh = getObject(name);
       app.webgl.scene.add(objClickedMesh);
@@ -29,9 +32,16 @@ jQuery( document ).ready(function($) {
   });
 
   function getObject(name){
-    for (let i = 0; i < 	app.webgl.scene.sceneObjects.length; i++) {
-      if (	app.webgl.scene.sceneObjects[i].name == name) {
-        return 	app.webgl.scene.sceneObjects[i];
+    if (name ==="facialPoints"){
+      app.webgl.scene.add(app.webgl.centerEyePoints);
+      app.buttonActivated = true;
+      return app.webgl.landmarks.points;
+    }
+    else{
+      for (let i = 0; i < 	app.webgl.scene.sceneObjects.length; i++) {
+        if (	app.webgl.scene.sceneObjects[i].name == name) {
+          return 	app.webgl.scene.sceneObjects[i];
+        }
       }
     }
   }

@@ -17,8 +17,7 @@ class Calculator {
 	}
 
 	updateFacialPoints(facialpoints, pointsname){
-		let scenechildren = this.getSceneChildrenByName(pointsname);
-		let positions = scenechildren.geometry.attributes.position.array;
+		let positions = app.webgl.landmarks.points.geometry.attributes.position.array;
 		let x,y;
 		let index = 0;
 		const z = 3;
@@ -37,7 +36,7 @@ class Calculator {
 		if(!facialpointssize)
 			return;
 
-		let scenechildren = this.getSceneChildrenByName("centerEyePoints");
+		//let scenechildren = this.getSceneChildrenByName("centerEyePoints");
 		let test = 0;
 		let eyesDistanceValue, pos;
 		let eyePoints = [];
@@ -56,7 +55,6 @@ class Calculator {
 		let indexEye2 = eyePoints[2];
 		let centerEyePointsAvg = [];
 
-
 		for( let i=0; i < eyePoints.sizeeye; i++){
 			pos = (indexEye1 - 1) * 	app.webgl.vectorSize;
 			sumPoints.xeye1 = sumPoints.xeye1 + positions[pos];
@@ -64,7 +62,6 @@ class Calculator {
 			//console.log("Eye 1 point " +  indexEye1  + ": " +  positions[pos] + "," + positions[pos + 1]);
 			indexEye1 ++;
 		}
-
 
 		for( let i=0; i < eyePoints.sizeeye; i++){
 			pos = (indexEye2 - 1) * 	app.webgl.vectorSize;
@@ -79,11 +76,7 @@ class Calculator {
 		centerEyePointsAvg.xeye2 = sumPoints.xeye2 / eyePoints.sizeeye;
 		centerEyePointsAvg.yeye2 = sumPoints.yeye2 / eyePoints.sizeeye;
 
-		//console.log("Eye 1 center point: " +  centerEyePointsAvg.xeye1 + "," + centerEyePointsAvg.yeye1);
-		//console.log("Eye 2 center point: " +  centerEyePointsAvg.xeye2 + "," + centerEyePointsAvg.yeye2);
-
-		//debugger
-		positions = scenechildren.geometry.attributes.position.array;
+		positions = app.webgl.centerEyePoints.geometry.attributes.position.array;
 		let x,y;
 		let index = 0;
 		const z = 3;

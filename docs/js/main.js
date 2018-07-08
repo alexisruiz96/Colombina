@@ -49,6 +49,7 @@ function init()
 	app.webgl.scene.sceneObjects = [];
 	app.webgl.loaderMesh = new LoaderMesh();
 	app.webgl.isPainted = false;
+	app.buttonActivated = false;
 	app.container = document.getElementById('canvasWeb');
 	app.webgl.ratioPixels = [];
 	app.webgl.vectorSize = 3;
@@ -142,7 +143,6 @@ function createFacialPoints(){
   app.webgl.landmarks.points = new THREE.Points(app.webgl.landmarks.geometry,app.webgl.landmarks.material);
 	app.webgl.landmarks.points.position.set(0,0,0);
 	app.webgl.landmarks.points.name = "facialPoints";
-	app.webgl.scene.add( app.webgl.landmarks.points );
 }
 
 function createCenterEyePoints(){
@@ -154,7 +154,6 @@ function createCenterEyePoints(){
   app.webgl.centerEyePoints = new THREE.Points(geometryCenters,materialCenters);
 	app.webgl.centerEyePoints.position.set(0,0,0);
 	app.webgl.centerEyePoints.name = "centerEyePoints";
-	app.webgl.scene.add( app.webgl.centerEyePoints );
 }
 
 function addSceneObjects(){
@@ -209,7 +208,7 @@ function updateScene(e){
 		let facepointslength = e.data.features.length
 		hideShowPoints(facepointslength);
 		if(facepointslength){
-			let updatedpoints = app.webgl.calculations.updateFacialPoints(e, "facialPoints");
+			let updatedpoints = app.webgl.calculations.updateFacialPoints(e);
 			let eyedistance = app.webgl.calculations.calculateEyesDistance(updatedpoints, facepointslength);
 			//recorrer objetos anadidos y actualizarlos
 			updateSceneObject(eyedistance,updatedpoints, "cap", e.data.scaleValue);
@@ -243,10 +242,6 @@ function scalateObjectToFace(eyesdistance, object, positions, name, scaleValue){
 
 	if(!eyesdistance)
 		return;
-	// let app.bboxdistancex = object.max.x - object.min.x;
-	// let scalatecoeficient = eyesdistance / app.bboxdistancex ;
-	// let scalevalue = (app.bboxdistancex * scalatecoeficient) / 2;
-	//scaleValue = scaleValue.toFixed(2)*6;
 	let selectedObject = app.webgl.scene.getObjectByName(name);
 	let scale = (scaleValue * app.webgl.movieScreen.movieScaleValue) / (app.videoImage.imageValueScale)*selectedObject.scaleValue;
 	x = positions[selectedObject.facialpoint * app.webgl.vectorSize]-1;
@@ -259,13 +254,17 @@ function scalateObjectToFace(eyesdistance, object, positions, name, scaleValue){
 
 function hideShowPoints(facialPointsLength){
 	if(facialPointsLength === 0 && app.webgl.isPainted != false){
-		app.webgl.scene.remove(app.webgl.landmarks.points);
-		app.webgl.scene.remove(app.webgl.centerEyePoints);
+		if(app.buttonActivated){
+			app.webgl.scene.remove(app.webgl.landmarks.points);
+			app.webgl.scene.remove(app.webgl.centerEyePoints);
+		}
 		hideObjects(false);
 	}
 	else if (facialPointsLength != 0 && app.webgl.isPainted != true) {
-		app.webgl.scene.add(app.webgl.landmarks.points);
-		app.webgl.scene.add(app.webgl.centerEyePoints);
+		if( app.buttonActivated){
+			app.webgl.scene.add(app.webgl.landmarks.points);
+			app.webgl.scene.add(app.webgl.centerEyePoints);
+		}
 		hideObjects(true);
 	}
 }
@@ -278,8 +277,6 @@ function hideObjects(hideBool){
 	}
 	app.webgl.isPainted = hideBool;
 }
-
-//e.data.angles[1],-e.data.angles[0],-e.data.angles[2]
 
 function rotateObj(anglex,angley,anglez, name){
 	if(app.webgl.scene.getObjectByName(name)==undefined)
