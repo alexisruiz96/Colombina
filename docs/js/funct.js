@@ -20,7 +20,7 @@ jQuery( document ).ready(function($) {
       if ($this.parents('.active').length)
         $this.parent('button').removeClass('active');
       // quitar objecto de escena
-      var name = e.target.id;
+      var name = $this[0].id;
       if(name=="facialPoints"){
         app.buttonActivated = false;
         app.webgl.scene.remove(app.webgl.centerEyePoints)
@@ -31,7 +31,7 @@ jQuery( document ).ready(function($) {
         $this.parent('button').addClass('active');
       if ($this.is('button'))
         $this.addClass('active');
-      var name = e.target.id;
+      var name = $this[0].id;
       var objClickedMesh = getObject(name);
       app.webgl.scene.add(objClickedMesh);
     }
